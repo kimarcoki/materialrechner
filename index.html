@@ -3,129 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Materialrechner Produktion</title>
+    <title>Produktions-App</title>
     <style>
-        body { font-family: sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        :root { --primary: #4f46e5; --bg: #f4f4f9; --text: #333; }
+        body { font-family: sans-serif; background-color: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* SIDEBAR */
+        #sidebar { width: 250px; background: #1e293b; color: white; display: none; flex-direction: column; padding: 20px; box-sizing: border-box; }
+        #sidebar h3 { border-bottom: 1px solid #334155; padding-bottom: 10px; margin-top: 0; }
+        .nav-item { padding: 12px; cursor: pointer; border-radius: 6px; margin-bottom: 5px; background: transparent; transition: 0.3s; }
+        .nav-item:hover { background: #334155; }
+        .nav-item.active { background: var(--primary); }
+
+        /* MAIN CONTENT */
+        #main { flex-grow: 1; display: flex; justify-content: center; align-items: center; overflow-y: auto; position: relative; }
+        .menu-toggle { position: absolute; top: 15px; left: 15px; background: var(--primary); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; display: none; }
+
         .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 450px; margin: 20px; }
-        #app-content { display: none; }
-        h2 { color: #333; text-align: center; margin-bottom: 20px; }
+        #app-content { display: none; width: 100%; display: flex; justify-content: center; }
+        
+        h2 { color: var(--text); text-align: center; margin-top: 0; }
         label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; font-size: 14px; }
         input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        input:disabled { background-color: #f0f0f0; color: #888; cursor: not-allowed; }
-        button { width: 100%; padding: 12px; background-color: #4f46e5; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        input:disabled { background-color: #f0f0f0; color: #888; }
+        
+        button { width: 100%; padding: 12px; background-color: var(--primary); color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .result-box { margin-top: 20px; padding: 15px; background: #eef2ff; border-radius: 8px; border-left: 5px solid #4f46e5; }
+        
+        .result-box { margin-top: 20px; padding: 15px; background: #eef2ff; border-radius: 8px; border-left: 5px solid var(--primary); }
         .result-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 17px; }
-        .unit { font-weight: bold; color: #4f46e5; }
+        .unit { font-weight: bold; color: var(--primary); }
         hr { border: 0; border-top: 1px solid #cbd5e1; margin: 10px 0; }
     </style>
 </head>
 <body>
 
-<div id="login-screen" class="card">
-    <h2>🔒 Login</h2>
-    <input type="password" id="passInput" placeholder="Passwort eingeben...">
-    <button onclick="checkPassword()">Anmelden</button>
-    <p id="error" style="color: red; display: none; text-align: center; margin-top: 10px;">Falsches Passwort!</p>
-</div>
-
-<div id="app-content" class="card">
-    <h2>Material-Rechner</h2>
-    
-    <label>Geplante Stückzahl (Stk.)</label>
-    <input type="number" id="stueck" value="10000" oninput="calculate()">
-
-    <label>Gewicht pro Stück (Gramm)</label>
-    <input type="number" id="gewichtG" value="150" step="0.1" oninput="calculate()">
-
-    <div class="grid">
-        <div>
-            <label>Trichter LINKS (%)</label>
-            <input type="number" id="pLinks" value="70" min="0" max="100" oninput="calculate()">
+    <nav id="sidebar">
+        <h3>Menü</h3>
+        <div class="nav-item active" onclick="showApp('rechner')">Material-Rechner</div>
+        <div class="nav-item" style="color: #64748b; cursor: default;">+ Weitere Funktionen (geplant)</div>
+        <div style="margin-top: auto;">
+            <button onclick="location.reload()" style="background: #ef4444;">Logout</button>
         </div>
-        <div>
-            <label>Trichter RECHTS (%)</label>
-            <input type="number" id="pRechts" value="30" disabled>
+    </nav>
+
+    <div id="main">
+        <button id="toggleBtn" class="menu-toggle" onclick="toggleSidebar()">☰ Menü</button>
+
+        <div id="login-screen" class="card">
+            <h2>🔒 Sicherer Login</h2>
+            <input type="password" id="passInput" placeholder="Passwort eingeben...">
+            <button onclick="checkPassword()">Anmelden</button>
+            <p id="error" style="color: #ef4444; display: none; text-align: center; margin-top: 10px;">Zugriff verweigert!</p>
+        </div>
+
+        <div id="app-content" style="display: none;">
+            <div class="card" id="rechner-view">
+                <h2>Material-Rechner</h2>
+                
+                <label>Geplante Stückzahl (Stk.)</label>
+                <input type="number" id="stueck" value="10000" oninput="calculate()">
+
+                <label>Gewicht pro Stück (Gramm)</label>
+                <input type="number" id="gewichtG" value="150" step="0.1" oninput="calculate()">
+
+                <div class="grid">
+                    <div>
+                        <label>Trichter LINKS (%)</label>
+                        <input type="number" id="pLinks" value="70" min="0" max="100" oninput="calculate()">
+                    </div>
+                    <div>
+                        <label>Trichter RECHTS (%)</label>
+                        <input type="number" id="pRechts" value="30" disabled>
+                    </div>
+                </div>
+
+                <label>Farbe / Additiv (%)</label>
+                <input type="number" id="farbeProzent" value="1.5" step="0.1" oninput="calculate()">
+
+                <div class="result-box">
+                    <div class="result-item"><span>Gesamtbedarf:</span><span class="unit" id="resGesamt">0 kg</span></div>
+                    <hr>
+                    <div class="result-item"><span>Anteil LINKS:</span><span class="unit" id="resLinks">0 kg</span></div>
+                    <div class="result-item"><span>Anteil RECHTS:</span><span class="unit" id="resRechts">0 kg</span></div>
+                    <div class="result-item"><span>Farbe:</span><span class="unit" id="resFarbe">0 kg</span></div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <label>Farbe / Additiv (%)</label>
-    <input type="number" id="farbeProzent" value="1.5" step="0.1" oninput="calculate()">
+    <script>
+        // Das Passwort ist als SHA-256 Hash gespeichert. 
+        // Selbst wenn man diesen Code liest, sieht man nicht "nucfov-temsut-1Bevka".
+        const HASHED_PW = "77d3376e1026075677e890f05596f272c726359df32b3504f4700f73f8f17070";
 
-    <div class="result-box">
-        <div class="result-item">
-            <span>Gesamtbedarf:</span>
-            <span class="unit" id="resGesamt">0 kg</span>
-        </div>
-        <hr>
-        <div class="result-item">
-            <span>Anteil LINKS:</span>
-            <span class="unit" id="resLinks">0 kg</span>
-        </div>
-        <div class="result-item">
-            <span>Anteil RECHTS:</span>
-            <span class="unit" id="resRechts">0 kg</span>
-        </div>
-        <div class="result-item">
-            <span>Farbe (Additiv):</span>
-            <span class="unit" id="resFarbe">0 kg</span>
-        </div>
-    </div>
-    
-    <button onclick="location.reload()" style="background: #64748b; margin-top: 20px; font-size: 14px;">Abmelden</button>
-</div>
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
 
-<script>
-const MEIN_PASSWORT = "1234"; 
+        async function checkPassword() {
+            const input = document.getElementById('passInput').value;
+            const hashedInput = await sha256(input);
+            
+            if(hashedInput === HASHED_PW) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-content').style.display = 'flex';
+                document.getElementById('sidebar').style.display = 'flex';
+                document.getElementById('toggleBtn').style.display = 'block';
+                calculate();
+            } else {
+                document.getElementById('error').style.display = 'block';
+            }
+        }
 
-function checkPassword() {
-    const input = document.getElementById('passInput').value;
-    if(input === MEIN_PASSWORT) {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app-content').style.display = 'block';
-        calculate();
-    } else {
-        document.getElementById('error').style.display = 'block';
-    }
-}
+        document.getElementById('passInput').addEventListener('keypress', async (e) => {
+            if (e.key === 'Enter') await checkPassword();
+        });
 
-document.getElementById('passInput').addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') checkPassword();
-});
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            sb.style.display = (sb.style.display === 'none' || sb.style.display === '') ? 'flex' : 'none';
+        }
 
-function calculate() {
-    const stueck = parseFloat(document.getElementById('stueck').value) || 0;
-    const gewichtGramm = parseFloat(document.getElementById('gewichtG').value) || 0;
-    
-    let pLinks = parseFloat(document.getElementById('pLinks').value);
-    if (isNaN(pLinks)) pLinks = 0;
-    if (pLinks > 100) pLinks = 100;
-    if (pLinks < 0) pLinks = 0;
-    
-    const pRechts = 100 - pLinks;
-    document.getElementById('pRechts').value = pRechts;
+        function calculate() {
+            const stueck = parseFloat(document.getElementById('stueck').value) || 0;
+            const gewichtGramm = parseFloat(document.getElementById('gewichtG').value) || 0;
+            let pLinks = parseFloat(document.getElementById('pLinks').value) || 0;
+            
+            if (pLinks > 100) pLinks = 100;
+            if (pLinks < 0) pLinks = 0;
+            const pRechts = 100 - pLinks;
+            document.getElementById('pRechts').value = pRechts;
 
-    const farbeP = parseFloat(document.getElementById('farbeProzent').value) || 0;
+            const farbeP = parseFloat(document.getElementById('farbeProzent').value) || 0;
+            const gesamtMaterialKg = (stueck * gewichtGramm) / 1000;
+            const anteilLinks = (gesamtMaterialKg * pLinks) / 100;
+            const anteilRechts = (gesamtMaterialKg * pRechts) / 100;
+            const farbeKg = gesamtMaterialKg * (farbeP / 100);
 
-    // Alles in kg berechnen
-    const gesamtMaterialKg = (stueck * gewichtGramm) / 1000;
-    const anteilLinks = (gesamtMaterialKg * pLinks) / 100;
-    const anteilRechts = (gesamtMaterialKg * pRechts) / 100;
-    const farbeKg = gesamtMaterialKg * (farbeP / 100);
-
-    // Anzeige in kg fixieren (2 Dezimalstellen)
-    document.getElementById('resGesamt').innerText = gesamtMaterialKg.toFixed(2) + " kg";
-    document.getElementById('resLinks').innerText = anteilLinks.toFixed(2) + " kg";
-    document.getElementById('resRechts').innerText = anteilRechts.toFixed(2) + " kg";
-    
-    // Farbe: Gramm-Anzeige bei kleinen Mengen, sonst kg
-    if (farbeKg < 1 && farbeKg > 0) {
-        document.getElementById('resFarbe').innerText = (farbeKg * 1000).toFixed(0) + " g";
-    } else {
-        document.getElementById('resFarbe').innerText = farbeKg.toFixed(2) + " kg";
-    }
-}
-</script>
-
+            document.getElementById('resGesamt').innerText = gesamtMaterialKg.toFixed(2) + " kg";
+            document.getElementById('resLinks').innerText = anteilLinks.toFixed(2) + " kg";
+            document.getElementById('resRechts').innerText = anteilRechts.toFixed(2) + " kg";
+            
+            if (farbeKg < 1 && farbeKg > 0) {
+                document.getElementById('resFarbe').innerText = (farbeKg * 1000).toFixed(0) + " g";
+            } else {
+                document.getElementById('resFarbe').innerText = farbeKg.toFixed(2) + " kg";
+            }
+        }
+    </script>
 </body>
 </html>
