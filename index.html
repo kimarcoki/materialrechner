@@ -41,10 +41,10 @@
         <button id="toggleBtn" class="menu-toggle" onclick="toggleSidebar()">☰ Menü</button>
 
         <div id="login-screen" class="card">
-            <h2>🔒 Sicherer Login</h2>
+            <h2>🔒 Login</h2>
             <input type="password" id="passInput" placeholder="Passwort eingeben...">
             <button onclick="checkPassword()">Anmelden</button>
-            <p id="error" style="color: #ef4444; display: none; text-align: center; margin-top: 10px;">Zugriff verweigert!</p>
+            <p id="error" style="color: #ef4444; display: none; text-align: center; margin-top: 10px;">Falsches Passwort!</p>
         </div>
 
         <div id="app-content">
@@ -78,19 +78,13 @@
     </div>
 
     <script>
-        // Passwort-Hash für: nucfov-temsut-1Bevka
-        const HASHED_PW = "77d3376e1026075677e890f05596f272c726359df32b3504f4700f73f8f17070";
+        // Passwort direkt gesetzt
+        const MEIN_PASSWORT = "nucfov-temsut-1Bevka";
 
-        async function checkPassword() {
+        function checkPassword() {
             const input = document.getElementById('passInput').value;
             
-            // Umwandlung in SHA-256 Hash
-            const msgBuffer = new TextEncoder().encode(input);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const hashedInput = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            
-            if(hashedInput === HASHED_PW) {
+            if(input.trim() === MEIN_PASSWORT) {
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-content').style.display = 'flex';
                 document.getElementById('sidebar').style.display = 'flex';
