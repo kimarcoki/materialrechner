@@ -5,22 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Produktions-App</title>
     <style>
-        :root { --primary: #4f46e5; --bg: #f4f4f9; --text: #333; }
-        body { font-family: sans-serif; background-color: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        #sidebar { width: 250px; background: #1e293b; color: white; display: none; flex-direction: column; padding: 20px; box-sizing: border-box; }
-        #sidebar h3 { border-bottom: 1px solid #334155; padding-bottom: 10px; margin-top: 0; }
-        .nav-item { padding: 12px; cursor: pointer; border-radius: 6px; margin-bottom: 5px; background: transparent; transition: 0.3s; }
+        :root { --primary: #4f46e5; --bg: #f4f4f9; --text: #333; --dark: #1e293b; }
+        body { font-family: sans-serif; background-color: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; color: var(--text); }
+        
+        /* SIDEBAR - Jetzt als Overlay */
+        #sidebar { 
+            position: fixed; left: -260px; top: 0; width: 250px; height: 100%; 
+            background: var(--dark); color: white; display: flex; flex-direction: column; 
+            padding: 20px; box-sizing: border-box; transition: 0.3s; z-index: 1000;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.2);
+        }
+        #sidebar.open { left: 0; }
+        #sidebar h3 { border-bottom: 1px solid #334155; padding-bottom: 10px; margin-top: 10px; }
+        
+        .nav-item { padding: 12px; cursor: pointer; border-radius: 6px; margin-bottom: 5px; transition: 0.2s; }
+        .nav-item:hover { background: #334155; }
         .nav-item.active { background: var(--primary); }
-        #main { flex-grow: 1; display: flex; justify-content: center; align-items: center; overflow-y: auto; position: relative; width: 100%; }
-        .menu-toggle { position: absolute; top: 15px; left: 15px; background: var(--primary); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; display: none; z-index: 100; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 450px; margin: 20px; }
+
+        /* MAIN CONTENT */
+        #main { flex-grow: 1; position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+        
+        .header-bar { position: absolute; top: 0; left: 0; width: 100%; padding: 15px; display: none; align-items: center; box-sizing: border-box; }
+        .menu-btn { background: var(--dark); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-size: 20px; z-index: 500; }
+        
+        /* OVERLAY wenn Menü offen */
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 900; }
+
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 90%; max-width: 450px; }
         #app-content { display: none; width: 100%; justify-content: center; }
-        h2 { color: var(--text); text-align: center; margin-top: 0; }
+        
         label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; font-size: 14px; }
         input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
         input:disabled { background-color: #f0f0f0; color: #888; }
-        button { width: 100%; padding: 12px; background-color: var(--primary); color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        
+        button.primary-btn { width: 100%; padding: 12px; background-color: var(--primary); color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        
         .result-box { margin-top: 20px; padding: 15px; background: #eef2ff; border-radius: 8px; border-left: 5px solid var(--primary); }
         .result-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 17px; }
         .unit { font-weight: bold; color: var(--primary); }
@@ -29,27 +49,34 @@
 </head>
 <body>
 
+    <div id="overlay" onclick="toggleSidebar()"></div>
+
     <nav id="sidebar">
-        <h3>Menü</h3>
-        <div class="nav-item active">Material-Rechner</div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3>Menü</h3>
+            <span onclick="toggleSidebar()" style="cursor:pointer; font-size: 24px;">&times;</span>
+        </div>
+        <div class="nav-item active" onclick="toggleSidebar()">Material-Rechner</div>
         <div style="margin-top: auto;">
-            <button onclick="location.reload()" style="background: #ef4444;">Logout</button>
+            <button class="primary-btn" onclick="location.reload()" style="background: #ef4444;">Abmelden</button>
         </div>
     </nav>
 
     <div id="main">
-        <button id="toggleBtn" class="menu-toggle" onclick="toggleSidebar()">☰ Menü</button>
+        <div id="header" class="header-bar">
+            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        </div>
 
         <div id="login-screen" class="card">
-            <h2>🔒 Login</h2>
+            <h2 style="text-align: center;">🔒 Login</h2>
             <input type="password" id="passInput" placeholder="Passwort eingeben...">
-            <button onclick="checkPassword()">Anmelden</button>
+            <button class="primary-btn" onclick="checkPassword()">Anmelden</button>
             <p id="error" style="color: #ef4444; display: none; text-align: center; margin-top: 10px;">Falsches Passwort!</p>
         </div>
 
         <div id="app-content">
             <div class="card">
-                <h2>Material-Rechner</h2>
+                <h2 style="text-align: center; margin-top: 0;">Material-Rechner</h2>
                 <label>Geplante Stückzahl (Stk.)</label>
                 <input type="number" id="stueck" value="10000" oninput="calculate()">
                 <label>Gewicht pro Stück (Gramm)</label>
@@ -78,17 +105,14 @@
     </div>
 
     <script>
-        // Passwort direkt gesetzt
         const MEIN_PASSWORT = "nucfov-temsut-1Bevka";
 
         function checkPassword() {
             const input = document.getElementById('passInput').value;
-            
             if(input.trim() === MEIN_PASSWORT) {
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-content').style.display = 'flex';
-                document.getElementById('sidebar').style.display = 'flex';
-                document.getElementById('toggleBtn').style.display = 'block';
+                document.getElementById('header').style.display = 'flex';
                 calculate();
             } else {
                 document.getElementById('error').style.display = 'block';
@@ -101,7 +125,14 @@
 
         function toggleSidebar() {
             const sb = document.getElementById('sidebar');
-            sb.style.display = (sb.style.display === 'none' || sb.style.display === '') ? 'flex' : 'none';
+            const ov = document.getElementById('overlay');
+            if (sb.classList.contains('open')) {
+                sb.classList.remove('open');
+                ov.style.display = 'none';
+            } else {
+                sb.classList.add('open');
+                ov.style.display = 'block';
+            }
         }
 
         function calculate() {
