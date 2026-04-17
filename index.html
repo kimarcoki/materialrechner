@@ -97,39 +97,33 @@ function calculate() {
     const stueck = parseFloat(document.getElementById('stueck').value) || 0;
     const gewichtGramm = parseFloat(document.getElementById('gewichtG').value) || 0;
     
-    // Prozente berechnen
     let pLinks = parseFloat(document.getElementById('pLinks').value);
     if (isNaN(pLinks)) pLinks = 0;
     if (pLinks > 100) pLinks = 100;
     if (pLinks < 0) pLinks = 0;
     
     const pRechts = 100 - pLinks;
-    
-    // Wert im deaktivierten Feld anzeigen
     document.getElementById('pRechts').value = pRechts;
 
     const farbeP = parseFloat(document.getElementById('farbeProzent').value) || 0;
 
-    // Gesamtmaterial in kg
+    // Alles in kg berechnen
     const gesamtMaterialKg = (stueck * gewichtGramm) / 1000;
-    
-    // Anteile
     const anteilLinks = (gesamtMaterialKg * pLinks) / 100;
     const anteilRechts = (gesamtMaterialKg * pRechts) / 100;
     const farbeKg = gesamtMaterialKg * (farbeP / 100);
 
-    // Anzeige
-    document.getElementById('resGesamt').innerText = formatUnit(gesamtMaterialKg);
-    document.getElementById('resLinks').innerText = formatUnit(anteilLinks);
-    document.getElementById('resRechts').innerText = formatUnit(anteilRechts);
-    document.getElementById('resFarbe').innerText = formatUnit(farbeKg);
-}
-
-function formatUnit(kg) {
-    if (kg >= 1000) {
-        return (kg / 1000).toFixed(2) + " t";
+    // Anzeige in kg fixieren (2 Dezimalstellen)
+    document.getElementById('resGesamt').innerText = gesamtMaterialKg.toFixed(2) + " kg";
+    document.getElementById('resLinks').innerText = anteilLinks.toFixed(2) + " kg";
+    document.getElementById('resRechts').innerText = anteilRechts.toFixed(2) + " kg";
+    
+    // Farbe: Gramm-Anzeige bei kleinen Mengen, sonst kg
+    if (farbeKg < 1 && farbeKg > 0) {
+        document.getElementById('resFarbe').innerText = (farbeKg * 1000).toFixed(0) + " g";
+    } else {
+        document.getElementById('resFarbe').innerText = farbeKg.toFixed(2) + " kg";
     }
-    return kg.toFixed(2) + " kg";
 }
 </script>
 
