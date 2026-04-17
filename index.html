@@ -8,7 +8,7 @@
         :root { --primary: #4f46e5; --bg: #f4f4f9; --text: #333; --dark: #1e293b; }
         body { font-family: sans-serif; background-color: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; color: var(--text); }
         
-        /* SIDEBAR - Jetzt als Overlay */
+        /* SIDEBAR Overlay */
         #sidebar { 
             position: fixed; left: -260px; top: 0; width: 250px; height: 100%; 
             background: var(--dark); color: white; display: flex; flex-direction: column; 
@@ -25,13 +25,19 @@
         /* MAIN CONTENT */
         #main { flex-grow: 1; position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
         
-        .header-bar { position: absolute; top: 0; left: 0; width: 100%; padding: 15px; display: none; align-items: center; box-sizing: border-box; }
-        .menu-btn { background: var(--dark); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-size: 20px; z-index: 500; }
-        
         /* OVERLAY wenn Menü offen */
         #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 900; }
 
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 90%; max-width: 450px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 90%; max-width: 450px; position: relative; }
+        
+        /* Header Bereich in der Karte */
+        .card-header { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; position: relative; }
+        .menu-btn { 
+            position: absolute; left: 0; background: var(--dark); color: white; 
+            border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; 
+            font-size: 18px; display: none; 
+        }
+
         #app-content { display: none; width: 100%; justify-content: center; }
         
         label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; font-size: 14px; }
@@ -63,12 +69,8 @@
     </nav>
 
     <div id="main">
-        <div id="header" class="header-bar">
-            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-        </div>
-
         <div id="login-screen" class="card">
-            <h2 style="text-align: center;">🔒 Login</h2>
+            <h2 style="text-align: center; margin-top: 0;">🔒 Login</h2>
             <input type="password" id="passInput" placeholder="Passwort eingeben...">
             <button class="primary-btn" onclick="checkPassword()">Anmelden</button>
             <p id="error" style="color: #ef4444; display: none; text-align: center; margin-top: 10px;">Falsches Passwort!</p>
@@ -76,11 +78,17 @@
 
         <div id="app-content">
             <div class="card">
-                <h2 style="text-align: center; margin-top: 0;">Material-Rechner</h2>
+                <div class="card-header">
+                    <button id="menuBtn" class="menu-btn" onclick="toggleSidebar()">☰</button>
+                    <h2 style="margin: 0;">Material-Rechner</h2>
+                </div>
+
                 <label>Geplante Stückzahl (Stk.)</label>
                 <input type="number" id="stueck" value="10000" oninput="calculate()">
+                
                 <label>Gewicht pro Stück (Gramm)</label>
                 <input type="number" id="gewichtG" value="150" step="0.1" oninput="calculate()">
+                
                 <div class="grid">
                     <div>
                         <label>Links (%)</label>
@@ -91,8 +99,10 @@
                         <input type="number" id="pRechts" value="30" disabled>
                     </div>
                 </div>
+                
                 <label>Farbe / Additiv (%)</label>
                 <input type="number" id="farbeProzent" value="1.5" step="0.1" oninput="calculate()">
+                
                 <div class="result-box">
                     <div class="result-item"><span>Gesamtbedarf:</span><span class="unit" id="resGesamt">0 kg</span></div>
                     <hr>
@@ -112,7 +122,7 @@
             if(input.trim() === MEIN_PASSWORT) {
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-content').style.display = 'flex';
-                document.getElementById('header').style.display = 'flex';
+                document.getElementById('menuBtn').style.display = 'block'; // Zeigt Button erst nach Login
                 calculate();
             } else {
                 document.getElementById('error').style.display = 'block';
