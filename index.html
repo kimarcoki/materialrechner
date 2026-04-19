@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Produktions-App v1.4.3</title>
+    <title>Produktions-App</title>
     <style>
-        :root { --primary: #4f46e5; --bg: #f4f4f9; --text: #333; --dark: #1e293b; --success: #22c55e; }
+        :root { --primary: #4f46e5; --bg: #f4f4f9; --text: #333; --dark: #1e293b; }
         body { font-family: sans-serif; background-color: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; color: var(--text); }
         
         .card-version { position: absolute; top: 10px; right: 15px; font-size: 10px; color: #cbd5e1; font-weight: normal; }
@@ -27,18 +27,18 @@
         #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 900; }
 
         .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 90%; max-width: 480px; position: relative; margin: 20px auto; }
-        .card.wide { max-width: 850px; }
-
         .card-header { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; position: relative; }
-        .menu-btn { position: absolute; left: 0; background: var(--dark); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 18px; display: block; }
+        .menu-btn { position: absolute; left: 0; background: var(--dark); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 18px; display: none; }
 
         #app-content { display: none; width: 100%; flex-direction: column; align-items: center; }
         .view-section { display: none; width: 100%; max-width: 480px; }
-        .view-section.wide { max-width: 900px; }
         .view-section.active { display: block; }
 
         label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; font-size: 13px; }
+        .label-center { text-align: center; display: block; width: 100%; margin-bottom: 3px; }
+
         input { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; text-align: center; }
+        input:disabled { background-color: #f0f0f0; color: #888; }
         
         button.primary-btn { width: 100%; padding: 12px; background-color: var(--primary); color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -48,21 +48,8 @@
         .result-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 16px; }
         .unit { font-weight: bold; color: var(--primary); }
         hr { border: 0; border-top: 1px solid #cbd5e1; margin: 8px 0; }
+        .color-detail { font-size: 14px; color: #444; padding-left: 10px; border-left: 2px solid #cbd5e1; margin-bottom: 4px; }
         .info-text { font-size: 11px; color: #64748b; margin-top: -8px; margin-bottom: 10px; text-align: center; }
-
-        /* Hallen-Übersicht */
-        .m-row { display: grid; grid-template-columns: 80px 1fr 1fr 1fr 1fr 1.5fr; gap: 8px; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
-        .m-name { font-weight: bold; color: var(--dark); font-size: 13px; }
-        .m-res { font-size: 11px; font-weight: bold; color: var(--primary); text-align: right; }
-        .progress-bar { height: 5px; background: #e2e8f0; border-radius: 3px; margin-top: 3px; overflow: hidden; }
-        .progress-fill { height: 100%; background: var(--success); transition: 0.3s; }
-        .m-input { padding: 6px; font-size: 14px; margin-bottom: 0; }
-
-        @media (max-width: 750px) {
-            .m-row { grid-template-columns: 1fr 1fr; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-bottom: 10px; }
-            .m-name { grid-column: span 2; background: #f8fafc; text-align: center; }
-            .m-res { grid-column: span 2; text-align: center; }
-        }
     </style>
 </head>
 <body>
@@ -71,11 +58,10 @@
 
     <nav id="sidebar">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="margin:0;">Menü</h3>
+            <h3>Menü</h3>
             <span onclick="toggleSidebar()" style="cursor:pointer; font-size: 24px;">&times;</span>
         </div>
-        <div id="nav-hallen" class="nav-item active" onclick="switchView('hallen')">Hallen-Übersicht</div>
-        <div id="nav-material" class="nav-item" onclick="switchView('material')">Material-Rechner</div>
+        <div id="nav-material" class="nav-item active" onclick="switchView('material')">Material-Rechner</div>
         <div id="nav-zyklus" class="nav-item" onclick="switchView('zyklus')">Zyklus-Rechner</div>
         <div style="margin-top: auto;">
             <button class="primary-btn" onclick="location.reload()" style="background: #ef4444;">Abmelden</button>
@@ -84,53 +70,45 @@
 
     <div id="main">
         <div id="login-screen" class="card">
-            <div class="card-version">v1.4.3</div>
+            <div class="card-version">v1.3.3</div>
             <h2 style="text-align: center; margin-top: 0;">🔒 Login</h2>
-            <input type="password" id="passInput" placeholder="Passwort...">
+            <input type="password" id="passInput" placeholder="Passwort eingeben...">
             <button class="primary-btn" onclick="checkPassword()">Anmelden</button>
-            <p id="error" style="color: #ef4444; display: none; text-align: center; margin-top: 10px;">Falsch!</p>
+            <p id="error" style="color: #ef4444; display: none; text-align: center; margin-top: 10px;">Falsches Passwort!</p>
         </div>
 
         <div id="app-content">
-            <div id="view-hallen" class="view-section wide active">
-                <div class="card wide">
-                    <div class="card-version">v1.4.3</div>
-                    <div class="card-header">
-                        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-                        <h2 style="margin: 0;">Hallen-Übersicht</h2>
-                    </div>
-                    <div id="maschinen-liste"></div>
-                </div>
-            </div>
-
-            <div id="view-material" class="view-section">
+            <div id="view-material" class="view-section active">
                 <div class="card">
-                    <div class="card-version">v1.4.3</div>
+                    <div class="card-version">v1.3.3</div>
                     <div class="card-header">
-                        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+                        <button class="menu-btn" style="display:block" onclick="toggleSidebar()">☰</button>
                         <h2 style="margin: 0;">Material-Rechner</h2>
                     </div>
-                    <label>Geplante Stückzahl</label>
+                    <label>Geplante Stückzahl (Stk.)</label>
                     <input type="number" id="stueck" oninput="calculateMaterial()">
-                    <label>Gewicht pro Stück (g)</label>
+                    <label>Gewicht pro Stück (Gramm)</label>
                     <input type="number" id="gewichtG" step="0.1" oninput="calculateMaterial()">
                     <div class="grid">
                         <div><label>Links (%)</label><input type="number" id="pLinks" oninput="calculateMaterial()"></div>
                         <div><label>Rechts (%)</label><input type="number" id="pRechts" disabled></div>
                     </div>
-                    <label>Farbe (%) gesamt</label>
+                    <label>Farbe / Additiv (%) gesamt</label>
                     <input type="number" id="farbeProzent" step="0.1" oninput="calculateMaterial()">
+                    <label style="margin-bottom: 10px;">Farbmischung (Teile pro Farbe)</label>
                     <div class="grid-4">
-                        <input type="number" id="f1" placeholder="F1" oninput="calculateMaterial()">
-                        <input type="number" id="f2" placeholder="F2" oninput="calculateMaterial()">
-                        <input type="number" id="f3" placeholder="F3" oninput="calculateMaterial()">
-                        <input type="number" id="f4" placeholder="F4" oninput="calculateMaterial()">
+                        <div><label class="label-center">F1</label><input type="number" id="f1" oninput="calculateMaterial()"></div>
+                        <div><label class="label-center">F2</label><input type="number" id="f2" oninput="calculateMaterial()"></div>
+                        <div><label class="label-center">F3</label><input type="number" id="f3" oninput="calculateMaterial()"></div>
+                        <div><label class="label-center">F4</label><input type="number" id="f4" oninput="calculateMaterial()"></div>
                     </div>
                     <div class="result-box">
-                        <div class="result-item"><span>Gesamt:</span><span class="unit" id="resGesamt">0,00 kg</span></div>
-                        <div class="result-item"><span>Links/Rechts:</span><span id="resLR">0/0 kg</span></div>
+                        <div class="result-item"><span>Gesamtbedarf:</span><span class="unit" id="resGesamt">0,00 kg</span></div>
                         <hr>
-                        <div class="result-item"><span>Farbe:</span><span class="unit" id="resFarbeGes">0,00 kg</span></div>
+                        <div class="result-item"><span>Anteil LINKS:</span><span class="unit" id="resLinks">0,00 kg</span></div>
+                        <div class="result-item"><span>Anteil RECHTS:</span><span class="unit" id="resRechts">0,00 kg</span></div>
+                        <hr>
+                        <div class="result-item"><span>Farbe gesamt:</span><span class="unit" id="resFarbeGes">0,00 kg</span></div>
                         <div id="farbeEinzelbereich"></div>
                     </div>
                 </div>
@@ -138,28 +116,41 @@
 
             <div id="view-zyklus" class="view-section">
                 <div class="card">
-                    <div class="card-version">v1.4.3</div>
+                    <div class="card-version">v1.3.3</div>
                     <div class="card-header">
-                        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+                        <button class="menu-btn" style="display:block" onclick="toggleSidebar()">☰</button>
                         <h2 style="margin: 0;">Zyklus-Rechner</h2>
                     </div>
                     <label>Geplante Stückzahl (Gesamt)</label>
                     <input type="number" id="zykStueck" oninput="calculateZyklus()">
+                    
                     <label>Zykluszeit (Sekunden)</label>
                     <input type="number" id="zykZeit" step="0.1" oninput="calculateZyklus()">
+
                     <div style="background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px dashed #cbd5e1; margin-bottom: 12px;">
                         <div class="grid">
-                            <div><label>Aktuelle Zettel-Nr.</label><input type="number" id="zykZettel" oninput="calculateZyklus()"></div>
-                            <div><label>Stück / Palette</label><input type="number" id="zykProPalette" oninput="calculateZyklus()"></div>
+                            <div>
+                                <label>Aktuelle Zettel-Nr.</label>
+                                <input type="number" id="zykZettel" placeholder="z.B. 45" oninput="calculateZyklus()" style="margin-bottom: 5px;">
+                            </div>
+                            <div>
+                                <label>Stück / Palette</label>
+                                <input type="number" id="zykProPalette" placeholder="80" oninput="calculateZyklus()" style="margin-bottom: 5px;">
+                            </div>
                         </div>
+                        <div class="info-text">Nur ausfüllen, um Restlaufzeit zu berechnen</div>
                     </div>
+
                     <div class="result-box">
                         <div class="result-item"><span>Teile pro Stunde:</span><span class="unit" id="resZykStunde">0 Stk.</span></div>
-                        <div class="result-item" id="rowProduziert" style="display:none;">
+                        <div class="result-item" id="rowProduziert" style="display:none; font-size: 14px; color: #64748b;">
                             <span>Bereits produziert:</span><span id="resZykBereits">0 Stk.</span>
                         </div>
                         <hr>
-                        <div class="result-item"><span id="labelLaufzeit">Laufzeit gesamt:</span><span class="unit" id="resZykDauer">0m</span></div>
+                        <div class="result-item">
+                            <span id="labelLaufzeit">Laufzeit gesamt:</span>
+                            <span class="unit" id="resZykDauer" style="text-align:right">0 Min.</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -169,13 +160,51 @@
     <script>
         const MEIN_PASSWORT = "nucfov-temsut-1Bevka";
 
+        function switchView(view) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('view-' + view).classList.add('active');
+            document.getElementById('nav-' + view).classList.add('active');
+            toggleSidebar();
+            if(view === 'material') calculateMaterial();
+            if(view === 'zyklus') calculateZyklus();
+        }
+
+        function loadSavedValues() {
+            const savedMat = localStorage.getItem('materialDataV13');
+            if (savedMat) {
+                const data = JSON.parse(savedMat);
+                document.getElementById('stueck').value = data.stueck;
+                document.getElementById('gewichtG').value = data.gewichtG;
+                document.getElementById('pLinks').value = data.pLinks;
+                document.getElementById('farbeProzent').value = data.farbeProzent;
+                document.getElementById('f1').value = data.f1; document.getElementById('f2').value = data.f2;
+                document.getElementById('f3').value = data.f3; document.getElementById('f4').value = data.f4;
+            }
+            const savedZyk = localStorage.getItem('zyklusDataV13_3');
+            if (savedZyk) {
+                const data = JSON.parse(savedZyk);
+                document.getElementById('zykStueck').value = data.stueck;
+                document.getElementById('zykZeit').value = data.zeit;
+                document.getElementById('zykZettel').value = data.zettel || "";
+                document.getElementById('zykProPalette').value = data.proPalette || "";
+            } else {
+                document.getElementById('zykStueck').value = 10000;
+                document.getElementById('zykZeit').value = 25;
+            }
+        }
+
         function checkPassword() {
             if(document.getElementById('passInput').value.trim() === MEIN_PASSWORT) {
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-content').style.display = 'flex';
-                initHalle(); loadSavedValues();
+                loadSavedValues();
+                calculateMaterial();
+                calculateZyklus();
             } else { document.getElementById('error').style.display = 'block'; }
         }
+
+        document.getElementById('passInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkPassword(); });
 
         function toggleSidebar() {
             const sb = document.getElementById('sidebar');
@@ -184,108 +213,83 @@
             ov.style.display = isOpen ? 'block' : 'none';
         }
 
-        function switchView(view) {
-            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById('view-' + view).classList.add('active');
-            document.getElementById('nav-' + view).classList.add('active');
-            toggleSidebar();
+        function formatNum(value, unit) {
+            const formatted = new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+            return `${formatted} ${unit}`;
         }
 
-        // HALLEN LOGIK
-        let hallenDaten = JSON.parse(localStorage.getItem('hallenDatenV143')) || {};
-        function initHalle() {
-            const container = document.getElementById('maschinen-liste'); container.innerHTML = "";
-            for (let i = 1; i <= 9; i++) {
-                const d = hallenDaten[i] || { z: 1, p: 80, s: 10000, t: 25 };
-                const row = document.createElement('div'); row.className = 'm-row';
-                row.innerHTML = `<div class="m-name">Maschine ${i}</div>
-                    <div><label>Zettel</label><input type="number" class="m-input" value="${d.z}" oninput="updateM(${i},'z',this.value)"></div>
-                    <div><label>Stk/Pal</label><input type="number" class="m-input" value="${d.p}" oninput="updateM(${i},'p',this.value)"></div>
-                    <div><label>Ziel</label><input type="number" class="m-input" value="${d.s}" oninput="updateM(${i},'s',this.value)"></div>
-                    <div><label>Zyk(s)</label><input type="number" class="m-input" value="${d.t}" oninput="updateM(${i},'t',this.value)"></div>
-                    <div class="m-res" id="resM${i}">...</div>`;
-                container.appendChild(row); calcM(i);
-            }
-        }
-        function updateM(id, f, v) {
-            if(!hallenDaten[id]) hallenDaten[id] = {z:0,p:0,s:0,t:0};
-            hallenDaten[id][f] = parseFloat(v) || 0;
-            localStorage.setItem('hallenDatenV143', JSON.stringify(hallenDaten));
-            calcM(id);
-        }
-        function calcM(id) {
-            const d = hallenDaten[id]; const fert = d.z * d.p; const off = d.s - fert;
-            const proz = Math.min(100, Math.max(0, (fert/d.s)*100)) || 0;
-            let t = "0m"; if(off > 0 && d.t > 0) {
-                const s = off * d.t;
-                const tage = Math.floor(s/86400), h = Math.floor((s%86400)/3600), m = Math.floor((s%3600)/60);
-                t = (tage > 0 ? tage + "d " : "") + h + "h " + m + "m";
-            }
-            document.getElementById(`resM${id}`).innerHTML = `<div>${proz.toFixed(1)}% | Rest: ${t}</div><div class="progress-bar"><div class="progress-fill" style="width:${proz}%"></div></div>`;
-        }
-
-        // MATERIAL RECHNER
         function calculateMaterial() {
-            const v = (id) => parseFloat(document.getElementById(id).value) || 0;
-            const stk = v('stueck'), gew = v('gewichtG'), fP = v('farbeProzent');
-            let pL = v('pLinks'); pL = Math.max(0, Math.min(100, pL));
+            const val = (id) => parseFloat(document.getElementById(id).value) || 0;
+            const stueck = val('stueck'), gewichtG = val('gewichtG');
+            let pL = val('pLinks');
+            if (pL > 100) pL = 100; if (pL < 0) pL = 0;
             document.getElementById('pRechts').value = 100 - pL;
-            const f1 = v('f1'), f2 = v('f2'), f3 = v('f3'), f4 = v('f4');
-            const ges = (stk * gew) / 1000; const fGes = ges * (fP / 100);
-            document.getElementById('resGesamt').innerText = ges.toLocaleString('de-DE', {minimumFractionDigits:2}) + " kg";
-            document.getElementById('resLR').innerText = (ges*pL/100).toLocaleString('de-DE', {maximumFractionDigits:2}) + " / " + (ges*(100-pL)/100).toLocaleString('de-DE', {maximumFractionDigits:2}) + " kg";
-            document.getElementById('resFarbeGes').innerText = fGes < 1 ? (fGes*1000).toFixed(1)+" g" : fGes.toLocaleString('de-DE', {minimumFractionDigits:2}) + " kg";
-            const e = document.getElementById('farbeEinzelbereich'); e.innerHTML = "";
-            const fS = f1+f2+f3+f4; if(fS > 0 && fGes > 0) {
-                [f1,f2,f3,f4].forEach((val, i) => { if(val > 0) {
-                    const a = (fGes/fS)*val;
-                    e.innerHTML += `<div class="color-detail">F${i+1}: ${a < 1 ? (a*1000).toFixed(1)+" g" : a.toLocaleString('de-DE', {minimumFractionDigits:2}) + " kg"}</div>`;
-                }});
+            const farbeP = val('farbeProzent');
+            const f1 = val('f1'), f2 = val('f2'), f3 = val('f3'), f4 = val('f4');
+            localStorage.setItem('materialDataV13', JSON.stringify({ stueck, gewichtG, pLinks: pL, farbeProzent: farbeP, f1, f2, f3, f4 }));
+            const gesamtKg = (stueck * gewichtG) / 1000;
+            const farbeGesamtKg = gesamtKg * (farbeP / 100);
+            document.getElementById('resGesamt').innerText = formatNum(gesamtKg, "kg");
+            document.getElementById('resLinks').innerText = formatNum(gesamtKg * pL / 100, "kg");
+            document.getElementById('resRechts').innerText = formatNum(gesamtKg * (100-pL) / 100, "kg");
+            let fVal = farbeGesamtKg <= 0 ? "0,00 kg" : (farbeGesamtKg < 1 ? (new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 }).format(farbeGesamtKg * 1000) + " g") : formatNum(farbeGesamtKg, "kg"));
+            document.getElementById('resFarbeGes').innerText = fVal;
+            const einzelBereich = document.getElementById('farbeEinzelbereich');
+            einzelBereich.innerHTML = "";
+            const gesamtTeile = f1 + f2 + f3 + f4;
+            if (gesamtTeile > 0 && farbeGesamtKg > 0) {
+                [f1, f2, f3, f4].forEach((teile, i) => {
+                    if (teile > 0) {
+                        const anteil = (farbeGesamtKg / gesamtTeile) * teile;
+                        let aTxt = anteil < 1 ? (new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 }).format(anteil * 1000) + " g") : formatNum(anteil, "kg");
+                        einzelBereich.innerHTML += `<div class="color-detail">Farbe ${i+1} (${teile} T.): <span class="unit">${aTxt}</span></div>`;
+                    }
+                });
             }
-            localStorage.setItem('matV143', JSON.stringify({stk, gew, pL, fP, f1, f2, f3, f4}));
         }
 
-        // ZYKLUS RECHNER (KORRIGIERT)
         function calculateZyklus() {
-            const v = (id) => parseFloat(document.getElementById(id).value) || 0;
-            const stk = v('zykStueck'), zeit = v('zykZeit'), zett = v('zykZettel'), pal = v('zykProPalette');
-            localStorage.setItem('zykV143', JSON.stringify({stk, zeit, zett, pal}));
-            
-            if (zeit > 0) {
-                document.getElementById('resZykStunde').innerText = Math.round(3600 / zeit).toLocaleString('de-DE') + " Stk.";
-                let berechnenFuer = stk;
-                if (zett > 0 && pal > 0) {
-                    const bereits = zett * pal;
-                    document.getElementById('rowProduziert').style.display = 'flex';
-                    document.getElementById('resZykBereits').innerText = bereits.toLocaleString('de-DE') + " Stk.";
-                    berechnenFuer = Math.max(0, stk - bereits);
-                    document.getElementById('labelLaufzeit').innerText = "Restlaufzeit:";
-                } else {
-                    document.getElementById('rowProduziert').style.display = 'none';
-                    document.getElementById('labelLaufzeit').innerText = "Laufzeit gesamt:";
-                }
-                const s = berechnenFuer * zeit;
-                const tage = Math.floor(s/86400), h = Math.floor((s%86400)/3600), m = Math.floor((s%3600)/60);
-                document.getElementById('resZykDauer').innerText = (tage > 0 ? tage + "d " : "") + h + "h " + m + "m";
-            }
-        }
+            const val = (id) => parseFloat(document.getElementById(id).value) || 0;
+            const stueckGesamt = val('zykStueck');
+            const zeit = val('zykZeit');
+            const zettelNr = val('zykZettel');
+            const proPalette = val('zykProPalette');
 
-        function loadSavedValues() {
-            const m = JSON.parse(localStorage.getItem('matV143'));
-            if(m) {
-                document.getElementById('stueck').value = m.stk; document.getElementById('gewichtG').value = m.gew;
-                document.getElementById('pLinks').value = m.pL; document.getElementById('farbeProzent').value = m.fP;
-                document.getElementById('f1').value = m.f1; document.getElementById('f2').value = m.f2;
-                document.getElementById('f3').value = m.f3; document.getElementById('f4').value = m.f4;
-                calculateMaterial();
+            localStorage.setItem('zyklusDataV13_3', JSON.stringify({ stueck: stueckGesamt, zeit, zettel: zettelNr, proPalette }));
+
+            if (zeit <= 0) {
+                document.getElementById('resZykStunde').innerText = "0 Stk.";
+                document.getElementById('resZykDauer').innerText = "0 Min.";
+                return;
             }
-            const z = JSON.parse(localStorage.getItem('zykV143'));
-            if(z) {
-                document.getElementById('zykStueck').value = z.stk; document.getElementById('zykZeit').value = z.zeit;
-                document.getElementById('zykZettel').value = z.zett; document.getElementById('zykProPalette').value = z.pal;
-                calculateZyklus();
+
+            const teileProStunde = (3600 / zeit);
+            document.getElementById('resZykStunde').innerText = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 }).format(teileProStunde) + " Stk.";
+
+            let berechnenFuerStueck = stueckGesamt;
+            
+            // Logik für Zettel-Berechnung
+            if (zettelNr > 0 && proPalette > 0) {
+                const bereitsProduziert = zettelNr * proPalette;
+                document.getElementById('rowProduziert').style.display = 'flex';
+                document.getElementById('resZykBereits').innerText = new Intl.NumberFormat('de-DE').format(bereitsProduziert) + " Stk.";
+                
+                berechnenFuerStueck = stueckGesamt - bereitsProduziert;
+                if (berechnenFuerStueck < 0) berechnenFuerStueck = 0;
+                
+                document.getElementById('labelLaufzeit').innerText = "Restlaufzeit:";
+            } else {
+                document.getElementById('rowProduziert').style.display = 'none';
+                document.getElementById('labelLaufzeit').innerText = "Laufzeit gesamt:";
             }
+
+            const dauerSekunden = berechnenFuerStueck * zeit;
+            const tage = Math.floor(dauerSekunden / 86400);
+            const stunden = Math.floor((dauerSekunden % 86400) / 3600);
+            const minuten = Math.floor((dauerSekunden % 3600) / 60);
+            
+            let dauerText = (tage > 0 ? tage + "d " : "") + (stunden > 0 || tage > 0 ? stunden + "h " : "") + minuten + "m";
+            document.getElementById('resZykDauer').innerText = dauerText;
         }
     </script>
 </body>
