@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Produktions-App v1.2</title>
+    <title>Produktions-App</title>
     <style>
         :root { --primary: #4f46e5; --bg: #f4f4f9; --text: #333; --dark: #1e293b; }
         body { font-family: sans-serif; background-color: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; color: var(--text); }
         
-        /* Versionsnummer rechts oben */
-        .version-tag { 
+        /* Versionsnummer innerhalb der Card oben rechts */
+        .card-version { 
             position: absolute; top: 10px; right: 15px; 
-            font-size: 11px; color: #94a3b8; font-weight: normal; 
-            z-index: 100; pointer-events: none;
+            font-size: 10px; color: #cbd5e1; font-weight: normal; 
         }
 
         #sidebar { 
@@ -53,7 +52,6 @@
 </head>
 <body>
 
-    <div class="version-tag">v1.2</div>
     <div id="overlay" onclick="toggleSidebar()"></div>
 
     <nav id="sidebar">
@@ -69,6 +67,7 @@
 
     <div id="main">
         <div id="login-screen" class="card">
+            <div class="card-version">v1.2</div>
             <h2 style="text-align: center; margin-top: 0;">🔒 Login</h2>
             <input type="password" id="passInput" placeholder="Passwort eingeben...">
             <button class="primary-btn" onclick="checkPassword()">Anmelden</button>
@@ -77,6 +76,7 @@
 
         <div id="app-content">
             <div class="card">
+                <div class="card-version">v1.2</div>
                 <div class="card-header">
                     <button id="menuBtn" class="menu-btn" onclick="toggleSidebar()">☰</button>
                     <h2 style="margin: 0;">Material-Rechner</h2>
