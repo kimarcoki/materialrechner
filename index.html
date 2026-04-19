@@ -8,7 +8,6 @@
         :root { --primary: #4f46e5; --bg: #f4f4f9; --text: #333; --dark: #1e293b; }
         body { font-family: sans-serif; background-color: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; color: var(--text); }
         
-        /* SIDEBAR Overlay */
         #sidebar { 
             position: fixed; left: -260px; top: 0; width: 250px; height: 100%; 
             background: var(--dark); color: white; display: flex; flex-direction: column; 
@@ -22,35 +21,27 @@
         .nav-item:hover { background: #334155; }
         .nav-item.active { background: var(--primary); }
 
-        /* MAIN CONTENT */
-        #main { flex-grow: 1; position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
-        
-        /* OVERLAY wenn Menü offen */
+        #main { flex-grow: 1; position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; overflow-y: auto; }
         #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 900; }
 
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 90%; max-width: 450px; position: relative; }
-        
-        /* Header Bereich in der Karte */
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 90%; max-width: 480px; position: relative; margin: 20px auto; }
         .card-header { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; position: relative; }
-        .menu-btn { 
-            position: absolute; left: 0; background: var(--dark); color: white; 
-            border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; 
-            font-size: 18px; display: none; 
-        }
+        .menu-btn { position: absolute; left: 0; background: var(--dark); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 18px; display: none; }
 
         #app-content { display: none; width: 100%; justify-content: center; }
-        
-        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; font-size: 14px; }
-        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; font-size: 13px; }
+        input { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
         input:disabled { background-color: #f0f0f0; color: #888; }
         
         button.primary-btn { width: 100%; padding: 12px; background-color: var(--primary); color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
         
-        .result-box { margin-top: 20px; padding: 15px; background: #eef2ff; border-radius: 8px; border-left: 5px solid var(--primary); }
-        .result-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 17px; }
+        .result-box { margin-top: 15px; padding: 15px; background: #eef2ff; border-radius: 8px; border-left: 5px solid var(--primary); }
+        .result-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 16px; }
         .unit { font-weight: bold; color: var(--primary); }
-        hr { border: 0; border-top: 1px solid #cbd5e1; margin: 10px 0; }
+        hr { border: 0; border-top: 1px solid #cbd5e1; margin: 8px 0; }
+        .color-detail { font-size: 14px; color: #444; padding-left: 10px; border-left: 2px solid #cbd5e1; margin-bottom: 4px; }
     </style>
 </head>
 <body>
@@ -84,31 +75,36 @@
                 </div>
 
                 <label>Geplante Stückzahl (Stk.)</label>
-                <input type="number" id="stueck" value="10000" oninput="calculate()">
+                <input type="number" id="stueck" oninput="calculate()">
                 
                 <label>Gewicht pro Stück (Gramm)</label>
-                <input type="number" id="gewichtG" value="150" step="0.1" oninput="calculate()">
+                <input type="number" id="gewichtG" step="0.1" oninput="calculate()">
                 
                 <div class="grid">
-                    <div>
-                        <label>Links (%)</label>
-                        <input type="number" id="pLinks" value="70" min="0" max="100" oninput="calculate()">
-                    </div>
-                    <div>
-                        <label>Rechts (%)</label>
-                        <input type="number" id="pRechts" value="30" disabled>
-                    </div>
+                    <div><label>Links (%)</label><input type="number" id="pLinks" oninput="calculate()"></div>
+                    <div><label>Rechts (%)</label><input type="number" id="pRechts" disabled></div>
                 </div>
                 
-                <label>Farbe / Additiv (%)</label>
-                <input type="number" id="farbeProzent" value="1.5" step="0.1" oninput="calculate()">
+                <label>Farbe / Additiv (%) gesamt</label>
+                <input type="number" id="farbeProzent" step="0.1" oninput="calculate()">
+
+                <label>Farbmischung (Teile pro Farbe)</label>
+                <div class="grid-4">
+                    <div><label>F1</label><input type="number" id="f1" value="0" oninput="calculate()"></div>
+                    <div><label>F2</label><input type="number" id="f2" value="0" oninput="calculate()"></div>
+                    <div><label>F3</label><input type="number" id="f3" value="0" oninput="calculate()"></div>
+                    <div><label>F4</label><input type="number" id="f4" value="0" oninput="calculate()"></div>
+                </div>
                 
                 <div class="result-box">
                     <div class="result-item"><span>Gesamtbedarf:</span><span class="unit" id="resGesamt">0 kg</span></div>
                     <hr>
                     <div class="result-item"><span>Anteil LINKS:</span><span class="unit" id="resLinks">0 kg</span></div>
                     <div class="result-item"><span>Anteil RECHTS:</span><span class="unit" id="resRechts">0 kg</span></div>
-                    <div class="result-item"><span>Farbe:</span><span class="unit" id="resFarbe">0 kg</span></div>
+                    <hr>
+                    <div class="result-item"><span>Farbe gesamt:</span><span class="unit" id="resFarbeGes">0 kg</span></div>
+                    <div id="farbeEinzelbereich">
+                        </div>
                 </div>
             </div>
         </div>
@@ -117,50 +113,82 @@
     <script>
         const MEIN_PASSWORT = "nucfov-temsut-1Bevka";
 
-        function checkPassword() {
-            const input = document.getElementById('passInput').value;
-            if(input.trim() === MEIN_PASSWORT) {
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('app-content').style.display = 'flex';
-                document.getElementById('menuBtn').style.display = 'block'; // Zeigt Button erst nach Login
-                calculate();
-            } else {
-                document.getElementById('error').style.display = 'block';
-            }
+        function loadSavedValues() {
+            const savedData = localStorage.getItem('materialDataV12');
+            const data = savedData ? JSON.parse(savedData) : {
+                stueck: 10000, gewichtG: 150, pLinks: 70, farbeProzent: 1.5, f1: 0, f2: 0, f3: 0, f4: 0
+            };
+            document.getElementById('stueck').value = data.stueck;
+            document.getElementById('gewichtG').value = data.gewichtG;
+            document.getElementById('pLinks').value = data.pLinks;
+            document.getElementById('farbeProzent').value = data.farbeProzent;
+            document.getElementById('f1').value = data.f1;
+            document.getElementById('f2').value = data.f2;
+            document.getElementById('f3').value = data.f3;
+            document.getElementById('f4').value = data.f4;
         }
 
-        document.getElementById('passInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') checkPassword();
-        });
+        function checkPassword() {
+            if(document.getElementById('passInput').value.trim() === MEIN_PASSWORT) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-content').style.display = 'flex';
+                document.getElementById('menuBtn').style.display = 'block';
+                loadSavedValues();
+                calculate();
+            } else { document.getElementById('error').style.display = 'block'; }
+        }
+
+        document.getElementById('passInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkPassword(); });
 
         function toggleSidebar() {
             const sb = document.getElementById('sidebar');
             const ov = document.getElementById('overlay');
-            if (sb.classList.contains('open')) {
-                sb.classList.remove('open');
-                ov.style.display = 'none';
-            } else {
-                sb.classList.add('open');
-                ov.style.display = 'block';
-            }
+            const isOpen = sb.classList.toggle('open');
+            ov.style.display = isOpen ? 'block' : 'none';
+        }
+
+        function formatVal(kg) {
+            if (kg <= 0) return "0 kg";
+            return kg < 1 ? (kg * 1000).toFixed(1) + " g" : kg.toFixed(2) + " kg";
         }
 
         function calculate() {
-            const stueck = parseFloat(document.getElementById('stueck').value) || 0;
-            const gewichtGramm = parseFloat(document.getElementById('gewichtG').value) || 0;
-            let pLinks = parseFloat(document.getElementById('pLinks').value) || 0;
-            if (pLinks > 100) pLinks = 100;
-            if (pLinks < 0) pLinks = 0;
-            document.getElementById('pRechts').value = 100 - pLinks;
+            const val = (id) => parseFloat(document.getElementById(id).value) || 0;
+            const stueck = val('stueck');
+            const gewichtG = val('gewichtG');
+            let pL = val('pLinks');
+            if (pL > 100) pL = 100; if (pL < 0) pL = 0;
+            document.getElementById('pRechts').value = 100 - pL;
 
-            const gesamtKg = (stueck * gewichtGramm) / 1000;
-            const farbeP = parseFloat(document.getElementById('farbeProzent').value) || 0;
-            const farbeKg = gesamtKg * (farbeP / 100);
+            const farbeP = val('farbeProzent');
+            const f1 = val('f1'), f2 = val('f2'), f3 = val('f3'), f4 = val('f4');
+
+            // Speichern
+            localStorage.setItem('materialDataV12', JSON.stringify({
+                stueck, gewichtG, pLinks: pL, farbeProzent: farbeP, f1, f2, f3, f4
+            }));
+
+            const gesamtKg = (stueck * gewichtG) / 1000;
+            const farbeGesamtKg = gesamtKg * (farbeP / 100);
 
             document.getElementById('resGesamt').innerText = gesamtKg.toFixed(2) + " kg";
-            document.getElementById('resLinks').innerText = (gesamtKg * pLinks / 100).toFixed(2) + " kg";
-            document.getElementById('resRechts').innerText = (gesamtKg * (100-pLinks) / 100).toFixed(2) + " kg";
-            document.getElementById('resFarbe').innerText = farbeKg < 1 ? (farbeKg * 1000).toFixed(0) + " g" : farbeKg.toFixed(2) + " kg";
+            document.getElementById('resLinks').innerText = (gesamtKg * pL / 100).toFixed(2) + " kg";
+            document.getElementById('resRechts').innerText = (gesamtKg * (100-pL) / 100).toFixed(2) + " kg";
+            document.getElementById('resFarbeGes').innerText = formatVal(farbeGesamtKg);
+
+            // Einzel-Farben berechnen
+            const gesamtTeile = f1 + f2 + f3 + f4;
+            const einzelBereich = document.getElementById('farbeEinzelbereich');
+            einzelBereich.innerHTML = "";
+
+            if (gesamtTeile > 0 && farbeGesamtKg > 0) {
+                [f1, f2, f3, f4].forEach((teile, i) => {
+                    if (teile > 0) {
+                        const anteil = (farbeGesamtKg / gesamtTeile) * teile;
+                        einzelBereich.innerHTML += `<div class="color-detail">Farbe ${i+1} (${teile} T.): <span class="unit">${formatVal(anteil)}</span></div>`;
+                    }
+                });
+            }
         }
     </script>
 </body>
