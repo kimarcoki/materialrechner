@@ -69,7 +69,7 @@
 
     <div id="main">
         <div id="login-screen" class="card">
-            <div class="card-version">v1.3.1</div>
+            <div class="card-version">v1.3.2</div>
             <h2 style="text-align: center; margin-top: 0;">🔒 Login</h2>
             <input type="password" id="passInput" placeholder="Passwort eingeben...">
             <button class="primary-btn" onclick="checkPassword()">Anmelden</button>
@@ -79,7 +79,7 @@
         <div id="app-content">
             <div id="view-material" class="view-section active">
                 <div class="card">
-                    <div class="card-version">v1.3.1</div>
+                    <div class="card-version">v1.3.2</div>
                     <div class="card-header">
                         <button class="menu-btn" style="display:block" onclick="toggleSidebar()">☰</button>
                         <h2 style="margin: 0;">Material-Rechner</h2>
@@ -121,7 +121,7 @@
 
             <div id="view-zyklus" class="view-section">
                 <div class="card">
-                    <div class="card-version">v1.3.1</div>
+                    <div class="card-version">v1.3.2</div>
                     <div class="card-header">
                         <button class="menu-btn" style="display:block" onclick="toggleSidebar()">☰</button>
                         <h2 style="margin: 0;">Zyklus-Rechner</h2>
@@ -132,9 +132,6 @@
                     
                     <label>Zykluszeit (Sekunden)</label>
                     <input type="number" id="zykZeit" step="0.1" oninput="calculateZyklus()">
-                    
-                    <label>Kavitäten (Nestzahl)</label>
-                    <input type="number" id="zykNest" value="1" oninput="calculateZyklus()">
 
                     <div class="result-box">
                         <div class="result-item"><span>Teile pro Stunde:</span><span class="unit" id="resZykStunde">0 Stk.</span></div>
@@ -152,11 +149,9 @@
         function switchView(view) {
             document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            
             document.getElementById('view-' + view).classList.add('active');
             document.getElementById('nav-' + view).classList.add('active');
             toggleSidebar();
-            
             if(view === 'material') calculateMaterial();
             if(view === 'zyklus') calculateZyklus();
         }
@@ -172,13 +167,14 @@
                 document.getElementById('f1').value = data.f1; document.getElementById('f2').value = data.f2;
                 document.getElementById('f3').value = data.f3; document.getElementById('f4').value = data.f4;
             }
-
-            const savedZyk = localStorage.getItem('zyklusDataV13');
+            const savedZyk = localStorage.getItem('zyklusDataV13_2');
             if (savedZyk) {
                 const data = JSON.parse(savedZyk);
                 document.getElementById('zykStueck').value = data.stueck;
                 document.getElementById('zykZeit').value = data.zeit;
-                document.getElementById('zykNest').value = data.nest;
+            } else {
+                document.getElementById('zykStueck').value = 10000;
+                document.getElementById('zykZeit').value = 25;
             }
         }
 
@@ -214,25 +210,17 @@
             document.getElementById('pRechts').value = 100 - pL;
             const farbeP = val('farbeProzent');
             const f1 = val('f1'), f2 = val('f2'), f3 = val('f3'), f4 = val('f4');
-
             localStorage.setItem('materialDataV13', JSON.stringify({ stueck, gewichtG, pLinks: pL, farbeProzent: farbeP, f1, f2, f3, f4 }));
-
             const gesamtKg = (stueck * gewichtG) / 1000;
             const farbeGesamtKg = gesamtKg * (farbeP / 100);
-
             document.getElementById('resGesamt').innerText = formatNum(gesamtKg, "kg");
             document.getElementById('resLinks').innerText = formatNum(gesamtKg * pL / 100, "kg");
             document.getElementById('resRechts').innerText = formatNum(gesamtKg * (100-pL) / 100, "kg");
-            
-            let fVal = "0,00 kg";
-            if (farbeGesamtKg > 0) {
-                fVal = farbeGesamtKg < 1 ? (new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 }).format(farbeGesamtKg * 1000) + " g") : formatNum(farbeGesamtKg, "kg");
-            }
+            let fVal = farbeGesamtKg <= 0 ? "0,00 kg" : (farbeGesamtKg < 1 ? (new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 }).format(farbeGesamtKg * 1000) + " g") : formatNum(farbeGesamtKg, "kg"));
             document.getElementById('resFarbeGes').innerText = fVal;
-
-            const gesamtTeile = f1 + f2 + f3 + f4;
             const einzelBereich = document.getElementById('farbeEinzelbereich');
             einzelBereich.innerHTML = "";
+            const gesamtTeile = f1 + f2 + f3 + f4;
             if (gesamtTeile > 0 && farbeGesamtKg > 0) {
                 [f1, f2, f3, f4].forEach((teile, i) => {
                     if (teile > 0) {
@@ -246,28 +234,19 @@
 
         function calculateZyklus() {
             const val = (id) => parseFloat(document.getElementById(id).value) || 0;
-            const stueck = val('zykStueck'), zeit = val('zykZeit'), nest = val('zykNest');
-
-            localStorage.setItem('zyklusDataV13', JSON.stringify({ stueck, zeit, nest }));
-
-            if (zeit <= 0 || nest <= 0) {
+            const stueck = val('zykStueck'), zeit = val('zykZeit');
+            localStorage.setItem('zyklusDataV13_2', JSON.stringify({ stueck, zeit }));
+            if (zeit <= 0) {
                 document.getElementById('resZykStunde').innerText = "0 Stk.";
                 document.getElementById('resZykDauer').innerText = "0 Min.";
                 return;
             }
-
-            const teileProStunde = (3600 / zeit) * nest;
-            const dauerSekunden = (stueck / nest) * zeit;
-            
+            const teileProStunde = (3600 / zeit);
+            const dauerSekunden = stueck * zeit;
             const tage = Math.floor(dauerSekunden / 86400);
             const stunden = Math.floor((dauerSekunden % 86400) / 3600);
             const minuten = Math.floor((dauerSekunden % 3600) / 60);
-
-            let dauerText = "";
-            if (tage > 0) dauerText += tage + "d ";
-            if (stunden > 0 || tage > 0) dauerText += stunden + "h ";
-            dauerText += minuten + "m";
-
+            let dauerText = (tage > 0 ? tage + "d " : "") + (stunden > 0 || tage > 0 ? stunden + "h " : "") + minuten + "m";
             document.getElementById('resZykStunde').innerText = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 }).format(teileProStunde) + " Stk.";
             document.getElementById('resZykDauer').innerText = dauerText;
         }
