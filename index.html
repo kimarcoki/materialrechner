@@ -26,7 +26,7 @@
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); width: 92%; max-width: 480px; position: relative; margin: 20px auto; box-sizing: border-box; }
         .card.wide { max-width: 1000px; margin-top: 50px; }
 
-        .sidebar-version { margin-top: 12px; font-size: 12px; color: #94a3b8; text-align: right; user-select: none; }
+        .sidebar-version { margin-top: 12px; font-size: 12px; color: #94a3b8; text-align: center; user-select: none; }
         .sidebar-version::before { content: var(--app-version); }
         
         .card-header { display: flex; align-items: center; justify-content: center; margin-bottom: 25px; position: relative; min-height: 45px; }
@@ -170,7 +170,7 @@
             }
         }
 
-        function updateM(id, f, v) { hData[id][f] = parseFloat(v) || 0; localStorage.setItem('hDataV163', JSON.stringify(hData)); calcM(id); }
+        function updateM(id, f, v) { hData[id][f] = parseFloat(v) || 0; saveHallen(); calcM(id); }
 
         function calcM(id) {
             const d = hData[id]; const istStk = d.curZ * d.p; const zielStk = d.targetStk;
@@ -214,7 +214,13 @@
         const materialIds = ['stueck','gewichtG','pLinks','farbeProzent','f1','f2','f3','f4'];
         const zyklusIds = ['zykStueck','zykZeit','zykZettel','zykProPalette'];
 
+        const saveHallen = () => localStorage.setItem('hDataV163', JSON.stringify(hData));
+        const loadHallen = () => {
+            hData = JSON.parse(localStorage.getItem('hDataV163')) || JSON.parse(localStorage.getItem('hData')) || {};
+        };
+
         window.addEventListener('DOMContentLoaded', () => {
+            loadHallen();
             loadInputs('materialV163', materialIds);
             loadInputs('zyklusV163', zyklusIds);
             // Recompute after restore so results update
