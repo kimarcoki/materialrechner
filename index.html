@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>Produktions-App v1.6.1</title>
+    <title>Produktions-App v1.6.2</title>
     <style>
         :root { --primary: #4f46e5; --bg: #f4f4f9; --text: #333; --dark: #1e293b; --success: #22c55e; }
         
@@ -22,7 +22,7 @@
         #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 900; }
         
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); width: 92%; max-width: 480px; position: relative; margin: 20px auto; box-sizing: border-box; }
-        .card.wide { max-width: 1100px; margin-top: 50px; }
+        .card.wide { max-width: 1000px; margin-top: 50px; }
         
         .card-header { display: flex; align-items: center; justify-content: center; margin-bottom: 25px; position: relative; min-height: 45px; }
         .menu-btn { position: absolute; left: 0; background: var(--dark); color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-size: 20px; }
@@ -41,14 +41,14 @@
         button.primary-btn { width: 100%; padding: 15px; background-color: var(--primary); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; }
 
         /* Produktion-Layout */
-        .m-row { display: grid; grid-template-columns: 100px 1fr 1fr 1fr 1fr 1fr 2.2fr; gap: 8px; align-items: end; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+        .m-row { display: grid; grid-template-columns: 100px 1fr 1fr 1.2fr 1fr 2.2fr; gap: 10px; align-items: end; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
         .m-name { font-weight: bold; font-size: 13px; padding-bottom: 12px; }
         .m-col { display: flex; flex-direction: column; align-items: center; }
         .m-res { font-size: 11px; font-weight: bold; color: var(--primary); text-align: right; width: 100%; white-space: nowrap; }
         .progress-bar { height: 10px; background: #e2e8f0; border-radius: 5px; margin-top: 4px; overflow: hidden; border: 1px solid #cbd5e1; width: 100%; }
         .progress-fill { height: 100%; background: var(--success); width: 0%; transition: 0.4s; }
 
-        @media (max-width: 900px) {
+        @media (max-width: 850px) {
             .m-row { grid-template-columns: 1fr 1fr; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 20px; }
             .m-name { grid-column: span 2; text-align: center; border-bottom: 1px solid #e2e8f0; margin-bottom: 10px; font-size: 16px; }
             .m-res-wrapper { grid-column: span 2; margin-top: 8px; }
@@ -82,7 +82,7 @@
         <div id="app-content">
             <div id="view-hallen" class="view-section active">
                 <div class="card wide">
-                    <div class="card-version">v1.6.1</div>
+                    <div class="card-version">v1.6.2</div>
                     <div class="card-header"><button class="menu-btn" onclick="toggleSidebar()">☰</button><h2 style="margin:0">Produktion-Übersicht</h2></div>
                     <div id="maschinen-liste"></div>
                 </div>
@@ -107,7 +107,6 @@
                     <div class="result-box">
                         <div class="result-item"><span>Gesamt:</span><span class="unit" id="resGesamt">0,00 kg</span></div>
                         <div class="result-item"><span>Farbe:</span><span class="unit" id="resFarbeGes">0,00 kg</span></div>
-                        <div id="farbeEinzelbereich"></div>
                     </div>
                 </div>
             </div>
@@ -132,45 +131,41 @@
 
     <script>
         const MEIN_PASSWORT = "nucfov-temsut-1Bevka";
-        let hData = JSON.parse(localStorage.getItem('hDataV161')) || {};
+        let hData = JSON.parse(localStorage.getItem('hDataV162')) || {};
 
         function initHalle() {
             const container = document.getElementById('maschinen-liste');
             if(!container) return; container.innerHTML = "";
             for (let i = 1; i <= 9; i++) {
-                if(!hData[i]) hData[i] = { curZ: 0, maxZ: 100, p: 80, t: 25 };
+                if(!hData[i]) hData[i] = { curZ: 0, p: 80, t: 25, targetStk: 10000 };
                 const d = hData[i];
-                const target = d.maxZ * d.p;
                 
                 const row = document.createElement('div'); row.className = 'm-row';
                 row.innerHTML = `
                     <div class="m-name">Maschine ${i}</div>
                     <div class="m-col"><label>Ist (Zettel)</label><input type="number" value="${d.curZ}" oninput="updateM(${i},'curZ',this.value)"></div>
-                    <div class="m-col"><label>Ziel (Zettel)</label><input type="number" value="${d.maxZ}" oninput="updateM(${i},'maxZ',this.value)"></div>
                     <div class="m-col"><label>Stk/Pal</label><input type="number" value="${d.p}" oninput="updateM(${i},'p',this.value)"></div>
-                    <div class="m-col"><label>Gesamt-Ziel</label><input type="number" id="target-${i}" value="${target}" disabled></div>
+                    <div class="m-col"><label>Gesamt-Ziel</label><input type="number" id="target-${i}" value="${d.targetStk}" oninput="updateM(${i},'targetStk',this.value)"></div>
                     <div class="m-col"><label>Zyklus (s)</label><input type="number" value="${d.t}" oninput="updateM(${i},'t',this.value)"></div>
                     <div class="m-res-wrapper">
                         <div class="m-res" id="resM${i}">0 / 0 Stk. (0%) | Rest: 0m</div>
                         <div class="progress-bar"><div class="progress-fill" id="fillM${i}" style="width:0%"></div></div>
                     </div>`;
                 container.appendChild(row); 
-                calcM(id=i);
+                calcM(i);
             }
         }
 
         function updateM(id, f, v) { 
             hData[id][f] = parseFloat(v) || 0; 
-            const target = hData[id].maxZ * hData[id].p;
-            document.getElementById(`target-${id}`).value = target;
-            localStorage.setItem('hDataV161', JSON.stringify(hData)); 
+            localStorage.setItem('hDataV162', JSON.stringify(hData)); 
             calcM(id); 
         }
 
         function calcM(id) {
             const d = hData[id]; 
             const istStk = d.curZ * d.p;
-            const zielStk = d.maxZ * d.p;
+            const zielStk = d.targetStk;
             const prozent = zielStk > 0 ? Math.min(100, (istStk / zielStk) * 100) : 0;
             const offen = zielStk - istStk;
             
