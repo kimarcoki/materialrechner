@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>Produktions-App v1.6.2</title>
+    <title>Produktions-App v1.6.3</title>
     <style>
         :root { --primary: #4f46e5; --bg: #f4f4f9; --text: #333; --dark: #1e293b; --success: #22c55e; }
         
@@ -40,7 +40,6 @@
         input:disabled { background: #f8fafc; color: #64748b; border: 1px dashed #cbd5e1; }
         button.primary-btn { width: 100%; padding: 15px; background-color: var(--primary); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; }
 
-        /* Produktion-Layout */
         .m-row { display: grid; grid-template-columns: 100px 1fr 1fr 1.2fr 1fr 2.2fr; gap: 10px; align-items: end; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
         .m-name { font-weight: bold; font-size: 13px; padding-bottom: 12px; }
         .m-col { display: flex; flex-direction: column; align-items: center; }
@@ -59,6 +58,7 @@
         .result-box { margin-top: 15px; padding: 15px; background: #eef2ff; border-radius: 10px; border-left: 5px solid var(--primary); }
         .result-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 16px; }
         .unit { font-weight: bold; color: var(--primary); }
+        .color-detail { font-size: 14px; color: #444; padding-left: 10px; border-left: 2px solid #cbd5e1; margin-bottom: 4px; }
     </style>
 </head>
 <body>
@@ -82,7 +82,7 @@
         <div id="app-content">
             <div id="view-hallen" class="view-section active">
                 <div class="card wide">
-                    <div class="card-version">v1.6.2</div>
+                    <div class="card-version">v1.6.3</div>
                     <div class="card-header"><button class="menu-btn" onclick="toggleSidebar()">☰</button><h2 style="margin:0">Produktion-Übersicht</h2></div>
                     <div id="maschinen-liste"></div>
                 </div>
@@ -98,15 +98,20 @@
                         <div><label>Rechts (%)</label><input type="number" id="pRechts" disabled></div>
                     </div>
                     <label>Farbe (%) gesamt</label><input type="number" id="farbeProzent" step="0.1" oninput="calculateMaterial()">
+                    <label>Farbmischung (Teile)</label>
                     <div class="grid-4">
-                        <div><label>F1</label><input type="number" id="f1" oninput="calculateMaterial()"></div>
-                        <div><label>F2</label><input type="number" id="f2" oninput="calculateMaterial()"></div>
-                        <div><label>F3</label><input type="number" id="f3" oninput="calculateMaterial()"></div>
-                        <div><label>F4</label><input type="number" id="f4" oninput="calculateMaterial()"></div>
+                        <div><label style="text-align:center">F1</label><input type="number" id="f1" oninput="calculateMaterial()"></div>
+                        <div><label style="text-align:center">F2</label><input type="number" id="f2" oninput="calculateMaterial()"></div>
+                        <div><label style="text-align:center">F3</label><input type="number" id="f3" oninput="calculateMaterial()"></div>
+                        <div><label style="text-align:center">F4</label><input type="number" id="f4" oninput="calculateMaterial()"></div>
                     </div>
                     <div class="result-box">
                         <div class="result-item"><span>Gesamt:</span><span class="unit" id="resGesamt">0,00 kg</span></div>
-                        <div class="result-item"><span>Farbe:</span><span class="unit" id="resFarbeGes">0,00 kg</span></div>
+                        <div class="result-item"><span>Links:</span><span class="unit" id="resLinks">0,00 kg</span></div>
+                        <div class="result-item"><span>Rechts:</span><span class="unit" id="resRechts">0,00 kg</span></div>
+                        <hr style="border:0; border-top:1px solid #cbd5e1; margin:10px 0;">
+                        <div class="result-item"><span>Farbe gesamt:</span><span class="unit" id="resFarbeGes">0,00 kg</span></div>
+                        <div id="farbeEinzelbereich"></div>
                     </div>
                 </div>
             </div>
@@ -131,7 +136,7 @@
 
     <script>
         const MEIN_PASSWORT = "nucfov-temsut-1Bevka";
-        let hData = JSON.parse(localStorage.getItem('hDataV162')) || {};
+        let hData = JSON.parse(localStorage.getItem('hDataV163')) || {};
 
         function initHalle() {
             const container = document.getElementById('maschinen-liste');
@@ -139,7 +144,6 @@
             for (let i = 1; i <= 9; i++) {
                 if(!hData[i]) hData[i] = { curZ: 0, p: 80, t: 25, targetStk: 10000 };
                 const d = hData[i];
-                
                 const row = document.createElement('div'); row.className = 'm-row';
                 row.innerHTML = `
                     <div class="m-name">Maschine ${i}</div>
@@ -151,44 +155,52 @@
                         <div class="m-res" id="resM${i}">0 / 0 Stk. (0%) | Rest: 0m</div>
                         <div class="progress-bar"><div class="progress-fill" id="fillM${i}" style="width:0%"></div></div>
                     </div>`;
-                container.appendChild(row); 
-                calcM(i);
+                container.appendChild(row); calcM(i);
             }
         }
 
-        function updateM(id, f, v) { 
-            hData[id][f] = parseFloat(v) || 0; 
-            localStorage.setItem('hDataV162', JSON.stringify(hData)); 
-            calcM(id); 
-        }
+        function updateM(id, f, v) { hData[id][f] = parseFloat(v) || 0; localStorage.setItem('hDataV163', JSON.stringify(hData)); calcM(id); }
 
         function calcM(id) {
-            const d = hData[id]; 
-            const istStk = d.curZ * d.p;
-            const zielStk = d.targetStk;
+            const d = hData[id]; const istStk = d.curZ * d.p; const zielStk = d.targetStk;
             const prozent = zielStk > 0 ? Math.min(100, (istStk / zielStk) * 100) : 0;
             const offen = zielStk - istStk;
-            
             let tTxt = "0m";
             if(offen > 0 && d.t > 0) {
                 const s = offen * d.t;
                 const h = Math.floor(s/3600), m = Math.floor((s%3600)/60);
                 tTxt = (h > 0 ? h + "h " : "") + m + "m";
             }
-
             document.getElementById(`resM${id}`).innerText = `${istStk.toLocaleString('de-DE')} / ${zielStk.toLocaleString('de-DE')} (${prozent.toFixed(1)}%) | Rest: ${tTxt}`;
             document.getElementById(`fillM${id}`).style.width = `${prozent}%`;
         }
 
-        function formatNum(v, u) { return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2 }).format(v) + " " + u; }
+        function formatNum(v, u) { return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v) + " " + u; }
+
         function calculateMaterial() {
             const val = (id) => parseFloat(document.getElementById(id).value) || 0;
             const s = val('stueck'), g = val('gewichtG'), fP = val('farbeProzent');
-            document.getElementById('pRechts').value = 100 - val('pLinks');
+            let pL = val('pLinks'); if (pL > 100) pL = 100; document.getElementById('pRechts').value = 100 - pL;
+            const f1 = val('f1'), f2 = val('f2'), f3 = val('f3'), f4 = val('f4');
+            
             const gesKg = (s * g) / 1000;
+            const fGesKg = gesKg * (fP / 100);
+            
             document.getElementById('resGesamt').innerText = formatNum(gesKg, "kg");
-            document.getElementById('resFarbeGes').innerText = formatNum(gesKg * (fP/100), "kg");
+            document.getElementById('resLinks').innerText = formatNum(gesKg * pL / 100, "kg");
+            document.getElementById('resRechts').innerText = formatNum(gesKg * (100 - pL) / 100, "kg");
+            document.getElementById('resFarbeGes').innerText = fGesKg < 1 ? (Math.round(fGesKg * 1000) + " g") : formatNum(fGesKg, "kg");
+            
+            const eb = document.getElementById('farbeEinzelbereich'); eb.innerHTML = "";
+            const gT = f1 + f2 + f3 + f4;
+            if (gT > 0 && fGesKg > 0) {
+                [f1, f2, f3, f4].forEach((t, i) => { if (t > 0) { 
+                    const a = (fGesKg / gT) * t; 
+                    eb.innerHTML += `<div class="color-detail">F${i+1}: <span class="unit">${a < 1 ? Math.round(a * 1000) + " g" : formatNum(a, "kg")}</span></div>`; 
+                }});
+            }
         }
+
         function calculateZyklus() {
             const val = (id) => parseFloat(document.getElementById(id).value) || 0;
             const s = val('zykStueck'), t = val('zykZeit'), z = val('zykZettel'), p = val('zykProPalette');
@@ -196,15 +208,18 @@
             document.getElementById('resZykStunde').innerText = Math.round(3600/t).toLocaleString('de-DE') + " Stk.";
             const restS = (s - (z*p)) * t;
             const h = Math.floor(restS/3600), m = Math.floor((restS%3600)/60);
-            document.getElementById('resZykDauer').innerText = h + "h " + m + "m";
+            document.getElementById('resZykDauer').innerText = (h > 0 ? h + "h " : "") + m + "m";
         }
+
         function switchView(v) {
             document.querySelectorAll('.view-section, .nav-item').forEach(e => e.classList.remove('active'));
             document.getElementById('view-' + v).classList.add('active'); document.getElementById('nav-' + v).classList.add('active');
             if(window.innerWidth < 850) toggleSidebar(); if(v === 'hallen') initHalle();
             window.scrollTo(0,0);
         }
+
         function toggleSidebar() { const sb = document.getElementById('sidebar'), ov = document.getElementById('overlay'); const open = sb.classList.toggle('open'); ov.style.display = open ? 'block' : 'none'; }
+        
         function checkPassword() { if(document.getElementById('passInput').value.trim() === MEIN_PASSWORT) { document.getElementById('login-screen').style.display = 'none'; document.getElementById('app-content').style.display = 'flex'; initHalle(); } else { document.getElementById('error').style.display = 'block'; }}
     </script>
 </body>
