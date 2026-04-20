@@ -7,7 +7,7 @@
     <style>
         :root { --primary: #4f46e5; --bg: #f4f4f9; --text: #333; --dark: #1e293b; --success: #22c55e; }
         /* auto-bump this on every push */
-        :root { --app-version: "v1.6.10"; }
+        :root { --app-version: "v1.6.11"; }
         
         html, body { 
             position: relative; height: 100%; overflow-x: hidden; overflow-y: auto;
@@ -176,7 +176,7 @@
         function calcM(id) {
             const d = hData[id]; const istStk = d.curZ * d.p; const zielStk = d.targetStk;
             const prozent = zielStk > 0 ? Math.min(100, (istStk / zielStk) * 100) : 0;
-            const offen = zielStk - istStk;
+            const offen = Math.max(0, zielStk - istStk);
             let tTxt = "0m";
             if(offen > 0 && d.t > 0) {
                 const s = Math.max(0, offen * d.t);
@@ -203,7 +203,15 @@
                 });
             } catch(e) {}
         };
-        const saveInputs = (key, ids) => {
+        const debounce = (fn, waitMs) => {
+            let t;
+            return (...args) => {
+                clearTimeout(t);
+                t = setTimeout(() => fn(...args), waitMs);
+            };
+        };
+
+        const saveInputsNow = (key, ids) => {
             const data = {};
             ids.forEach(id => {
                 const el = document.getElementById(id);
@@ -211,6 +219,7 @@
             });
             localStorage.setItem(key, JSON.stringify(data));
         };
+        const saveInputs = debounce(saveInputsNow, 250);
 
         const materialIds = ['stueck','gewichtG','pLinks','farbeProzent','f1','f2','f3','f4'];
         const zyklusIds = ['zykStueck','zykZeit','zykZettel','zykProPalette'];
