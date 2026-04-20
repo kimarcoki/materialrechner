@@ -7,7 +7,7 @@
     <style>
         :root { --primary: #4f46e5; --bg: #f4f4f9; --text: #333; --dark: #1e293b; --success: #22c55e; }
         /* auto-bump this on every push */
-        :root { --app-version: "v1.6.8"; }
+        :root { --app-version: "v1.6.9"; }
         
         html, body { 
             position: relative; height: 100%; overflow-x: hidden; overflow-y: auto;
@@ -41,6 +41,7 @@
             width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 8px; 
             box-sizing: border-box; font-size: 16px; text-align: center; background: white;
         }
+        input:focus { outline: none; }
         
         input:disabled { background: #f8fafc; color: #64748b; border: 1px dashed #cbd5e1; }
         button.primary-btn { width: 100%; padding: 15px; background-color: var(--primary); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; }
@@ -226,6 +227,21 @@
             // Recompute after restore so results update
             calculateMaterial();
             calculateZyklus();
+
+            // Mobile UX: close keyboard on Enter/Done and on tap outside inputs
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && e.target && e.target.tagName === 'INPUT') {
+                    e.preventDefault();
+                    e.target.blur();
+                }
+            }, true);
+            document.addEventListener('pointerdown', (e) => {
+                const t = e.target;
+                if (!(t && (t.tagName === 'INPUT' || t.closest('input')))) {
+                    const a = document.activeElement;
+                    if (a && a.tagName === 'INPUT') a.blur();
+                }
+            }, { capture: true });
         });
 
         function calculateMaterial() {
