@@ -214,9 +214,11 @@
             const s = val('zykStueck'), t = val('zykZeit'), z = val('zykZettel'), p = val('zykProPalette');
             if (t <= 0) return;
             document.getElementById('resZykStunde').innerText = Math.round(3600/t).toLocaleString('de-DE') + " Stk.";
-            const restS = (s - (z*p)) * t;
-            const h = Math.floor(restS/3600), m = Math.floor((restS%3600)/60);
-            document.getElementById('resZykDauer').innerText = (h > 0 ? h + "h " : "") + m + "m";
+            const restS = Math.max(0, (s - (z*p)) * t);
+            const ddd = Math.floor(restS / 86400);
+            const h = Math.floor((restS % 86400) / 3600);
+            const m = Math.floor((restS % 3600) / 60);
+            document.getElementById('resZykDauer').innerText = (ddd > 0 ? ddd + "d " : "") + (h > 0 || ddd > 0 ? h + "h " : "") + m + "m";
         }
 
         function switchView(v) {
