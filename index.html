@@ -171,9 +171,11 @@
             const offen = zielStk - istStk;
             let tTxt = "0m";
             if(offen > 0 && d.t > 0) {
-                const s = offen * d.t;
-                const h = Math.floor(s/3600), m = Math.floor((s%3600)/60);
-                tTxt = (h > 0 ? h + "h " : "") + m + "m";
+                const s = Math.max(0, offen * d.t);
+                const ddd = Math.floor(s / 86400);
+                const h = Math.floor((s % 86400) / 3600);
+                const m = Math.floor((s % 3600) / 60);
+                tTxt = (ddd > 0 ? ddd + "d " : "") + (h > 0 || ddd > 0 ? h + "h " : "") + m + "m";
             }
             document.getElementById(`resM${id}`).innerText = `${istStk.toLocaleString('de-DE')} / ${zielStk.toLocaleString('de-DE')} (${prozent.toFixed(1)}%) | Rest: ${tTxt}`;
             document.getElementById(`fillM${id}`).style.width = `${prozent}%`;
