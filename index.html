@@ -7,7 +7,7 @@
     <style>
         :root { --primary: #4f46e5; --bg: #f4f4f9; --text: #333; --dark: #1e293b; --success: #22c55e; }
         /* auto-bump this on every push */
-        :root { --app-version: "v1.6.6"; }
+        :root { --app-version: "v1.6.7"; }
         
         html, body { 
             position: relative; height: 100%; overflow-x: hidden; overflow-y: auto;
@@ -48,7 +48,7 @@
         .m-row { display: grid; grid-template-columns: 100px 1fr 1fr 1.2fr 1fr 2.2fr; gap: 10px; align-items: end; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
         .m-name { font-weight: bold; font-size: 13px; padding-bottom: 12px; }
         .m-col { display: flex; flex-direction: column; align-items: center; }
-        .m-res { font-size: 11px; font-weight: bold; color: var(--primary); text-align: right; width: 100%; white-space: nowrap; }
+        .m-res { font-size: 11px; font-weight: bold; color: var(--primary); text-align: center; width: 100%; white-space: nowrap; }
         .progress-bar { position: relative; height: 16px; background: #e2e8f0; border-radius: 8px; margin-top: 4px; overflow: hidden; border: 1px solid #cbd5e1; width: 100%; }
         .progress-fill { height: 100%; background: var(--success); width: 0%; transition: 0.4s; }
         .progress-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #0f172a; text-shadow: 0 1px 0 rgba(255,255,255,0.6); pointer-events: none; }
@@ -192,7 +192,38 @@
 
         function formatNum(v, u) { return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v) + " " + u; }
 
+        // Persist input values for Material + Zyklus calculators
+        const loadInputs = (key, ids) => {
+            try {
+                const data = JSON.parse(localStorage.getItem(key) || "{}") || {};
+                ids.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el && data[id] !== undefined && data[id] !== null) el.value = data[id];
+                });
+            } catch(e) {}
+        };
+        const saveInputs = (key, ids) => {
+            const data = {};
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) data[id] = el.value;
+            });
+            localStorage.setItem(key, JSON.stringify(data));
+        };
+
+        const materialIds = ['stueck','gewichtG','pLinks','farbeProzent','f1','f2','f3','f4'];
+        const zyklusIds = ['zykStueck','zykZeit','zykZettel','zykProPalette'];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadInputs('materialV163', materialIds);
+            loadInputs('zyklusV163', zyklusIds);
+            // Recompute after restore so results update
+            calculateMaterial();
+            calculateZyklus();
+        });
+
         function calculateMaterial() {
+            saveInputs('materialV163', materialIds);
             const val = (id) => parseFloat(document.getElementById(id).value) || 0;
             const s = val('stueck'), g = val('gewichtG'), fP = val('farbeProzent');
             let pL = val('pLinks'); if (pL > 100) pL = 100; document.getElementById('pRechts').value = 100 - pL;
@@ -217,6 +248,7 @@
         }
 
         function calculateZyklus() {
+            saveInputs('zyklusV163', zyklusIds);
             const val = (id) => parseFloat(document.getElementById(id).value) || 0;
             const s = val('zykStueck'), t = val('zykZeit'), z = val('zykZettel'), p = val('zykProPalette');
             if (t <= 0) return;
