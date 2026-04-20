@@ -44,8 +44,9 @@
         .m-name { font-weight: bold; font-size: 13px; padding-bottom: 12px; }
         .m-col { display: flex; flex-direction: column; align-items: center; }
         .m-res { font-size: 11px; font-weight: bold; color: var(--primary); text-align: right; width: 100%; white-space: nowrap; }
-        .progress-bar { height: 10px; background: #e2e8f0; border-radius: 5px; margin-top: 4px; overflow: hidden; border: 1px solid #cbd5e1; width: 100%; }
+        .progress-bar { position: relative; height: 16px; background: #e2e8f0; border-radius: 8px; margin-top: 4px; overflow: hidden; border: 1px solid #cbd5e1; width: 100%; }
         .progress-fill { height: 100%; background: var(--success); width: 0%; transition: 0.4s; }
+        .progress-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #0f172a; text-shadow: 0 1px 0 rgba(255,255,255,0.6); pointer-events: none; }
 
         @media (max-width: 850px) {
             .m-row { grid-template-columns: 1fr 1fr; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 20px; }
@@ -153,7 +154,10 @@
                     <div class="m-col"><label>Zyklus (s)</label><input type="number" value="${d.t}" oninput="updateM(${i},'t',this.value)"></div>
                     <div class="m-res-wrapper">
                         <div class="m-res" id="resM${i}">0 / 0 Stk. (0%) | Rest: 0m</div>
-                        <div class="progress-bar"><div class="progress-fill" id="fillM${i}" style="width:0%"></div></div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="fillM${i}" style="width:0%"></div>
+                            <div class="progress-text" id="pctM${i}">0%</div>
+                        </div>
                     </div>`;
                 container.appendChild(row); calcM(i);
             }
@@ -173,6 +177,8 @@
             }
             document.getElementById(`resM${id}`).innerText = `${istStk.toLocaleString('de-DE')} / ${zielStk.toLocaleString('de-DE')} (${prozent.toFixed(1)}%) | Rest: ${tTxt}`;
             document.getElementById(`fillM${id}`).style.width = `${prozent}%`;
+            const pctEl = document.getElementById(`pctM${id}`);
+            if (pctEl) pctEl.innerText = `${prozent.toFixed(1)}%`;
         }
 
         function formatNum(v, u) { return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v) + " " + u; }
