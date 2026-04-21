@@ -1,0 +1,14 @@
+{
+  "name": "produktion-app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.10.0",
+    "express": "^4.19.2"
+  }
+}

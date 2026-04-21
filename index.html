@@ -82,14 +82,9 @@
     </nav>
 
     <div id="main">
-        <div id="login-screen" class="card">
-            <h2 style="text-align: center;">🔒 Login</h2>
-            <input type="password" id="passInput" placeholder="Passwort...">
-            <button class="primary-btn" onclick="checkPassword()">Anmelden</button>
-            <p id="error" style="color: #ef4444; display: none; text-align: center; margin-top: 10px;">Falsch!</p>
-        </div>
+        <div id="login-screen" class="card" style="display:none"></div>
 
-        <div id="app-content">
+        <div id="app-content" style="display:flex">
             <div id="view-hallen" class="view-section active">
                 <div class="card wide">
                     <div class="card-header"><button class="menu-btn" onclick="toggleSidebar()">☰</button><h2 style="margin:0">Produktion-Übersicht</h2></div>
@@ -144,8 +139,9 @@
     </div>
 
     <script>
-        const MEIN_PASSWORT = "nucfov-temsut-1Bevka";
-        let hData = JSON.parse(localStorage.getItem('hDataV163')) || JSON.parse(localStorage.getItem('hData')) || {};
+        // When hosted with backend, data is stored server-side via /api/state
+        let hData = {};
+        let remoteState = { hallen: {}, material: {}, zyklus: {} };
 
         function initHalle() {
             const container = document.getElementById('maschinen-liste');
@@ -171,7 +167,12 @@
             }
         }
 
-        function updateM(id, f, v) { hData[id][f] = parseFloat(v) || 0; saveHallen(); calcM(id); }
+        function updateM(id, f, v) {
+            hData[id][f] = parseFloat(v) || 0;
+            remoteState.hallen = hData;
+            saveRemoteState();
+            calcM(id);
+        }
 
         function calcM(id) {
             const d = hData[id]; const istStk = d.curZ * d.p; const zielStk = d.targetStk;
@@ -193,16 +194,9 @@
 
         function formatNum(v, u) { return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v) + " " + u; }
 
-        // Persist input values for Material + Zyklus calculators
-        const loadInputs = (key, ids) => {
-            try {
-                const data = JSON.parse(localStorage.getItem(key) || "{}") || {};
-                ids.forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el && data[id] !== undefined && data[id] !== null) el.value = data[id];
-                });
-            } catch(e) {}
-        };
+        const materialIds = ['stueck','gewichtG','pLinks','farbeProzent','f1','f2','f3','f4'];
+        const zyklusIds = ['zykStueck','zykZeit','zykZettel','zykProPalette'];
+
         const debounce = (fn, waitMs) => {
             let t;
             return (...args) => {
@@ -211,31 +205,56 @@
             };
         };
 
-        const saveInputsNow = (key, ids) => {
-            const data = {};
+        const applyInputsFromObj = (obj, ids) => {
             ids.forEach(id => {
                 const el = document.getElementById(id);
-                if (el) data[id] = el.value;
+                if (!el) return;
+                if (obj && obj[id] !== undefined && obj[id] !== null) el.value = obj[id];
             });
-            localStorage.setItem(key, JSON.stringify(data));
         };
-        const saveInputs = debounce(saveInputsNow, 250);
-
-        const materialIds = ['stueck','gewichtG','pLinks','farbeProzent','f1','f2','f3','f4'];
-        const zyklusIds = ['zykStueck','zykZeit','zykZettel','zykProPalette'];
-
-        const saveHallen = () => localStorage.setItem('hDataV163', JSON.stringify(hData));
-        const loadHallen = () => {
-            hData = JSON.parse(localStorage.getItem('hDataV163')) || JSON.parse(localStorage.getItem('hData')) || {};
+        const readInputsToObj = (ids) => {
+            const out = {};
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) out[id] = el.value;
+            });
+            return out;
         };
 
-        window.addEventListener('DOMContentLoaded', () => {
-            loadHallen();
-            loadInputs('materialV163', materialIds);
-            loadInputs('zyklusV163', zyklusIds);
+        const saveRemoteStateNow = async () => {
+            try {
+                await fetch('/api/state', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ state: remoteState })
+                });
+            } catch(e) {
+                // ignore (offline) – UI keeps working
+            }
+        };
+        const saveRemoteState = debounce(saveRemoteStateNow, 300);
+
+        const loadRemoteState = async () => {
+            try {
+                const r = await fetch('/api/state');
+                const j = await r.json();
+                if (j && j.state) remoteState = j.state;
+            } catch(e) {}
+            remoteState.hallen = remoteState.hallen || {};
+            remoteState.material = remoteState.material || {};
+            remoteState.zyklus = remoteState.zyklus || {};
+            hData = remoteState.hallen;
+            applyInputsFromObj(remoteState.material, materialIds);
+            applyInputsFromObj(remoteState.zyklus, zyklusIds);
+        };
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadRemoteState();
+
             // Recompute after restore so results update
             calculateMaterial();
             calculateZyklus();
+            initHalle();
 
             // Mobile UX: close keyboard on Enter/Done and on tap outside inputs
             document.addEventListener('keydown', (e) => {
@@ -254,7 +273,8 @@
         });
 
         function calculateMaterial() {
-            saveInputs('materialV163', materialIds);
+            remoteState.material = readInputsToObj(materialIds);
+            saveRemoteState();
             const val = (id) => parseFloat(document.getElementById(id).value) || 0;
             const s = val('stueck'), g = val('gewichtG'), fP = val('farbeProzent');
             let pL = val('pLinks'); if (pL > 100) pL = 100; document.getElementById('pRechts').value = 100 - pL;
@@ -279,7 +299,8 @@
         }
 
         function calculateZyklus() {
-            saveInputs('zyklusV163', zyklusIds);
+            remoteState.zyklus = readInputsToObj(zyklusIds);
+            saveRemoteState();
             const val = (id) => parseFloat(document.getElementById(id).value) || 0;
             const s = val('zykStueck'), t = val('zykZeit'), z = val('zykZettel'), p = val('zykProPalette');
             if (t <= 0) return;
@@ -300,7 +321,12 @@
 
         function toggleSidebar() { const sb = document.getElementById('sidebar'), ov = document.getElementById('overlay'); const open = sb.classList.toggle('open'); ov.style.display = open ? 'block' : 'none'; }
         
-        function checkPassword() { if(document.getElementById('passInput').value.trim() === MEIN_PASSWORT) { document.getElementById('login-screen').style.display = 'none'; document.getElementById('app-content').style.display = 'flex'; initHalle(); } else { document.getElementById('error').style.display = 'block'; }}
+        // Login is disabled when hosted with backend.
+        function checkPassword() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-content').style.display = 'flex';
+            initHalle();
+        }
     </script>
 </body>
 </html>

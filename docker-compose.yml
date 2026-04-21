@@ -1,0 +1,12 @@
+services:
+  produktion:
+    build: .
+    container_name: produktion-app
+    ports:
+      - "43080:8080"
+    volumes:
+      - produktion_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  produktion_data:
