@@ -234,18 +234,31 @@
         };
         const saveRemoteState = debounce(saveRemoteStateNow, 300);
 
+        let lastUpdatedAt = null;
+        let isEditing = false;
+
         const loadRemoteState = async () => {
             try {
-                const r = await fetch('/api/state');
+                const r = await fetch('/api/state', { cache: 'no-store' });
                 const j = await r.json();
+                if (j && j.updatedAt && j.updatedAt === lastUpdatedAt) return; // nothing new
                 if (j && j.state) remoteState = j.state;
-            } catch(e) {}
+                lastUpdatedAt = j?.updatedAt ?? lastUpdatedAt;
+            } catch(e) { return; }
+
             remoteState.hallen = remoteState.hallen || {};
             remoteState.material = remoteState.material || {};
             remoteState.zyklus = remoteState.zyklus || {};
-            hData = remoteState.hallen;
-            applyInputsFromObj(remoteState.material, materialIds);
-            applyInputsFromObj(remoteState.zyklus, zyklusIds);
+
+            // Avoid overwriting the field while the user is actively typing
+            if (!isEditing) {
+                hData = remoteState.hallen;
+                applyInputsFromObj(remoteState.material, materialIds);
+                applyInputsFromObj(remoteState.zyklus, zyklusIds);
+                // update hallen UI if visible
+                document.querySelectorAll('[id^="fillM"]').forEach(() => {});
+                initHalle();
+            }
         };
 
         window.addEventListener('DOMContentLoaded', async () => {
@@ -255,6 +268,17 @@
             calculateMaterial();
             calculateZyklus();
             initHalle();
+
+            // Live refresh (polling)
+            setInterval(() => { if (!isEditing) loadRemoteState(); }, 2000);
+
+            // Track whether user is editing (to avoid overwriting fields mid-typing)
+            document.addEventListener('focusin', (e) => {
+                if (e.target && e.target.tagName === 'INPUT') isEditing = true;
+            });
+            document.addEventListener('focusout', (e) => {
+                if (e.target && e.target.tagName === 'INPUT') isEditing = false;
+            });
 
             // Mobile UX: close keyboard on Enter/Done and on tap outside inputs
             document.addEventListener('keydown', (e) => {
